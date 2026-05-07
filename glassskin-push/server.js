@@ -254,4 +254,3 @@ app.listen(PORT, () => {
   console.log(`   VAPID configurato ✓`);
   console.log(`   Endpoint admin: POST /subscribe/admin\n`);
 });
-
