@@ -1,17 +1,18 @@
 {
   "name": "glassskin-push",
   "version": "1.0.0",
-  "description": "",
-  "main": "sw.js",
+  "description": "Glass Skin Beauty Push Server",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "build": "npm install"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
-    "cors": "^2.8.6",
-    "express": "^5.2.1",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
     "web-push": "^3.6.7"
   }
 }
