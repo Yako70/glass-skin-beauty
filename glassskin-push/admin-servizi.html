@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Glass Skin Beauty — Gestione Servizi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0e0907;--panel:#1a100d;--card:#1e1210;
+  --border:rgba(196,132,106,0.15);--border-hover:rgba(196,132,106,0.35);
+  --copper:#c4846a;--rose:#d4a5a0;--deep:#b07470;
+  --cream:#faf6f4;--ivory:#fff9f7;--blush:#f0ddd6;
+  --dark:#2c1a17;--muted:#8a6660;
+  --green:#4a9a6a;--red:#c06060;
+  --shadow:rgba(180,120,110,0.12);--shadow-md:rgba(180,120,110,0.22);
+}
+body{
+  font-family:'Jost',sans-serif;
+  background:var(--bg);min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;
+  padding:28px 14px 60px;overflow-x:hidden;position:relative;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 60% 40% at 5% 5%,rgba(196,132,106,0.07) 0%,transparent 60%),
+             radial-gradient(ellipse 40% 50% at 95% 95%,rgba(176,116,112,0.05) 0%,transparent 60%);
+}
+
+/* ── HEADER ── */
+.hdr{text-align:center;margin-bottom:26px;z-index:5;position:relative;}
+.logo{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:300;letter-spacing:0.14em;color:var(--blush);}
+.logo span{color:var(--copper);}
+.logo-s{font-size:0.58rem;letter-spacing:0.38em;text-transform:uppercase;color:rgba(240,221,214,0.32);margin-top:4px;}
+.badge{display:inline-block;margin-top:10px;padding:4px 16px;border-radius:20px;border:1px solid rgba(196,132,106,0.22);font-size:0.56rem;letter-spacing:0.22em;text-transform:uppercase;color:rgba(196,132,106,0.65);}
+
+/* ── LAYOUT ── */
+.layout{display:flex;gap:22px;align-items:flex-start;justify-content:center;width:100%;max-width:940px;z-index:5;position:relative;flex-wrap:wrap;}
+
+/* ══ PHONE ══ */
+.phone{
+  width:272px;flex-shrink:0;
+  background:linear-gradient(160deg,#291510,#160b08);
+  border-radius:42px;padding:11px;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.05),0 40px 80px rgba(0,0,0,0.7);
+  position:relative;
+}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:94px;height:22px;background:linear-gradient(160deg,#291510,#160b08);border-radius:0 0 14px 14px;z-index:50;}
+.screen{border-radius:32px;overflow:hidden;background:#0e0907;height:575px;position:relative;display:flex;flex-direction:column;font-family:'Jost',sans-serif;}
+
+/* topbar */
+.atop{background:rgba(14,9,7,0.96);backdrop-filter:blur(16px);border-bottom:1px solid rgba(196,132,106,0.1);padding:10px 13px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:10;}
+.abrand{font-family:'Cormorant Garamond',serif;font-size:0.92rem;font-weight:300;color:var(--blush);letter-spacing:0.07em;}
+.abrand span{color:var(--copper);}
+.alive{display:flex;align-items:center;gap:5px;font-size:0.56rem;color:rgba(240,221,214,0.38);letter-spacing:0.07em;}
+.ldot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:blink 1.8s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+/* scroll area */
+.scr{flex:1;overflow-y:auto;scrollbar-width:none;}
+.scr::-webkit-scrollbar{display:none;}
+
+/* pages */
+.pg{display:none;padding:13px 12px 80px;animation:fup 0.28s ease;}
+.pg.on{display:block;}
+@keyframes fup{from{opacity:0;transform:translateY(7px);}to{opacity:1;transform:translateY(0);}}
+
+/* section headers */
+.ph{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:300;color:var(--blush);margin-bottom:3px;}
+.ps{font-size:0.6rem;color:rgba(196,132,106,0.6);letter-spacing:0.08em;margin-bottom:14px;}
+
+/* ── SERVICE LIST (admin view) ── */
+.svc-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.svc-item{
+  background:rgba(255,249,247,0.025);border:1px solid var(--border);
+  border-radius:12px;padding:11px 12px;
+  display:flex;align-items:center;gap:10px;
+  transition:all 0.25s;position:relative;overflow:hidden;
+  cursor:pointer;
+}
+.svc-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--rose),var(--copper));}
+.svc-item:hover{border-color:var(--border-hover);background:rgba(255,249,247,0.04);}
+.svc-item.editing{border-color:rgba(196,132,106,0.4);background:rgba(196,132,106,0.04);}
+.svc-item.inactive{opacity:0.4;}
+.si-emo{font-size:1.4rem;flex-shrink:0;}
+.si-body{flex:1;min-width:0;}
+.si-name{font-family:'Cormorant Garamond',serif;font-size:0.9rem;color:var(--blush);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.si-meta{font-size:0.6rem;color:rgba(240,221,214,0.38);margin-top:1px;}
+.si-price{font-size:0.88rem;color:var(--copper);font-weight:500;flex-shrink:0;}
+.si-actions{display:flex;gap:5px;flex-shrink:0;}
+.act-btn{width:26px;height:26px;border-radius:7px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.75rem;transition:all 0.18s;}
+.edit-btn{background:rgba(196,132,106,0.12);color:var(--copper);}
+.edit-btn:hover{background:rgba(196,132,106,0.22);}
+.del-btn{background:rgba(192,96,96,0.1);color:var(--red);}
+.del-btn:hover{background:rgba(192,96,96,0.2);}
+.tog-btn{background:rgba(74,154,106,0.1);color:var(--green);}
+.tog-btn.off{background:rgba(255,255,255,0.05);color:rgba(240,221,214,0.3);}
+.tog-btn:hover{background:rgba(74,154,106,0.2);}
+
+/* ADD SERVICE button */
+.add-svc-btn{
+  width:100%;padding:11px;border:1.5px dashed rgba(196,132,106,0.25);
+  border-radius:12px;background:none;color:var(--copper);
+  font-family:'Jost',sans-serif;font-size:0.7rem;letter-spacing:0.16em;
+  text-transform:uppercase;cursor:pointer;transition:all 0.2s;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+}
+.add-svc-btn:hover{border-color:rgba(196,132,106,0.5);background:rgba(196,132,106,0.04);}
+
+/* stats bar */
+.stats-mini{display:flex;gap:6px;margin-bottom:14px;}
+.sm{flex:1;background:rgba(196,132,106,0.06);border:1px solid var(--border);border-radius:10px;padding:8px;text-align:center;}
+.sm-n{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:300;color:var(--copper);}
+.sm-l{font-size:0.5rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(240,221,214,0.35);margin-top:1px;}
+
+/* ── EDIT MODAL (bottom sheet) ── */
+.sheet-ov{position:absolute;inset:0;z-index:200;background:rgba(14,9,7,0.6);backdrop-filter:blur(4px);display:flex;align-items:flex-end;opacity:0;visibility:hidden;transition:all 0.28s;}
+.sheet-ov.open{opacity:1;visibility:visible;}
+.sheet{width:100%;background:#1a100d;border-radius:20px 20px 0 0;padding:20px 16px 28px;transform:translateY(100%);transition:transform 0.32s cubic-bezier(0.34,1.2,0.64,1);border-top:1px solid rgba(196,132,106,0.14);}
+.sheet-ov.open .sheet{transform:translateY(0);}
+.sheet-handle{width:32px;height:3px;border-radius:2px;background:rgba(196,132,106,0.25);margin:0 auto 16px;}
+.sheet-title{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:300;color:var(--blush);margin-bottom:14px;}
+
+/* emoji picker row */
+.emo-row{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.emo-opt{width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,0.04);border:1.5px solid transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;transition:all 0.18s;}
+.emo-opt.sel{border-color:var(--copper);background:rgba(196,132,106,0.1);}
+
+/* form fields */
+.flbl{display:block;font-size:0.54rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(240,221,214,0.38);margin-bottom:5px;}
+.finput{width:100%;padding:9px 11px;background:rgba(255,255,255,0.04);border:1.5px solid rgba(196,132,106,0.18);border-radius:8px;font-family:'Jost',sans-serif;font-size:0.8rem;color:var(--blush);outline:none;margin-bottom:10px;transition:border-color 0.2s;}
+.finput:focus{border-color:rgba(196,132,106,0.5);}
+.finput::placeholder{color:rgba(240,221,214,0.2);}
+.row2{display:flex;gap:8px;}
+.row2 .finput{margin-bottom:0;}
+.sheet-btns{display:flex;gap:7px;margin-top:14px;}
+.sbtn-save{flex:1;padding:11px;background:linear-gradient(135deg,var(--deep),var(--copper));color:white;border:none;border-radius:10px;font-family:'Jost',sans-serif;font-size:0.68rem;letter-spacing:0.16em;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 12px var(--shadow-md);transition:all 0.2s;}
+.sbtn-cancel{padding:11px 14px;background:rgba(255,255,255,0.04);color:rgba(240,221,214,0.45);border:1px solid rgba(255,255,255,0.07);border-radius:10px;cursor:pointer;font-size:0.8rem;transition:all 0.18s;}
+
+/* ── DELETE CONFIRM ── */
+.del-sheet{width:100%;background:#1a100d;border-radius:20px 20px 0 0;padding:20px 16px 28px;transform:translateY(100%);transition:transform 0.32s cubic-bezier(0.34,1.2,0.64,1);border-top:1px solid rgba(192,96,96,0.14);}
+.sheet-ov.open .del-sheet{transform:translateY(0);}
+.del-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--blush);margin-bottom:6px;}
+.del-sub{font-size:0.7rem;color:rgba(240,221,214,0.4);margin-bottom:16px;line-height:1.5;}
+.dbtn-del{flex:1;padding:11px;background:rgba(192,96,96,0.15);color:var(--red);border:1px solid rgba(192,96,96,0.2);border-radius:10px;font-family:'Jost',sans-serif;font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
+.dbtn-del:hover{background:rgba(192,96,96,0.25);}
+
+/* ── TOAST ── */
+.toast{
+  position:absolute;bottom:80px;left:50%;transform:translateX(-50%) translateY(14px);
+  background:linear-gradient(135deg,var(--deep),var(--copper));
+  color:white;padding:10px 18px;border-radius:22px;
+  font-size:0.72rem;letter-spacing:0.06em;
+  box-shadow:0 5px 20px var(--shadow-md);
+  white-space:nowrap;z-index:300;
+  opacity:0;transition:all 0.3s cubic-bezier(0.34,1.3,0.64,1);pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── CLIENT PREVIEW ── */
+.preview-card{
+  background:rgba(255,249,247,0.025);border:1px solid var(--border);
+  border-radius:12px;padding:12px;margin-bottom:8px;
+}
+.pv-label{font-size:0.52rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(196,132,106,0.5);margin-bottom:8px;}
+.pv-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.pv-card{background:rgba(255,249,247,0.03);border:1px solid rgba(212,165,160,0.12);border-radius:9px;padding:9px 8px;}
+.pv-emo{font-size:1.2rem;margin-bottom:4px;display:block;}
+.pv-name{font-family:'Cormorant Garamond',serif;font-size:0.8rem;color:var(--blush);}
+.pv-dur{font-size:0.56rem;color:rgba(240,221,214,0.35);margin-top:1px;}
+.pv-price{font-size:0.72rem;color:var(--copper);font-weight:500;margin-top:5px;}
+
+/* ── BOTTOM NAV ── */
+.bnav{position:absolute;bottom:0;left:0;right:0;background:rgba(14,9,7,0.97);backdrop-filter:blur(16px);border-top:1px solid rgba(196,132,106,0.1);display:flex;padding:6px 0 8px;z-index:100;}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;border:none;background:none;padding:4px 2px;}
+.nicon{font-size:1rem;}
+.nlbl{font-size:0.48rem;letter-spacing:0.07em;text-transform:uppercase;color:rgba(240,221,214,0.25);}
+.ni.on .nlbl{color:var(--copper);font-weight:500;}
+.ni.on .nicon{transform:scale(1.1);}
+
+/* ══ RIGHT PANEL ══ */
+.right{flex:1;min-width:240px;max-width:380px;display:flex;flex-direction:column;gap:14px;}
+
+/* live sync card */
+.sync-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;}
+.sync-title{font-size:0.58rem;letter-spacing:0.22em;text-transform:uppercase;color:rgba(240,221,214,0.35);margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.8s infinite;}
+.preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.pg-card{
+  background:rgba(255,249,247,0.025);border:1px solid rgba(212,165,160,0.1);
+  border-radius:11px;padding:11px 9px;transition:all 0.35s;
+}
+.pg-card.updated{animation:flash 0.6s ease;}
+@keyframes flash{0%{background:rgba(196,132,106,0.15);}100%{background:rgba(255,249,247,0.025);}}
+.pg-emo{font-size:1.3rem;margin-bottom:5px;display:block;}
+.pg-name{font-family:'Cormorant Garamond',serif;font-size:0.82rem;color:var(--blush);}
+.pg-dur{font-size:0.56rem;color:rgba(240,221,214,0.3);margin-top:1px;}
+.pg-price{font-size:0.74rem;color:var(--copper);font-weight:500;margin-top:5px;}
+.pg-inactive{opacity:0.3;}
+.pg-inactive .pg-price::after{content:' (off)';font-size:0.55rem;color:var(--red);}
+
+/* stats card */
+.stats-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;}
+.stats-title{font-size:0.58rem;letter-spacing:0.22em;text-transform:uppercase;color:rgba(240,221,214,0.35);margin-bottom:14px;}
+.stats-rows{display:flex;flex-direction:column;gap:10px;}
+.stat-row2{display:flex;justify-content:space-between;align-items:center;padding-bottom:9px;border-bottom:1px solid rgba(240,221,214,0.05);}
+.stat-row2:last-child{border-bottom:none;padding-bottom:0;}
+.sr-label{font-size:0.72rem;color:rgba(240,221,214,0.5);}
+.sr-value{font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--copper);}
+
+/* log */
+.log-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;}
+.log-title{font-size:0.58rem;letter-spacing:0.22em;text-transform:uppercase;color:rgba(240,221,214,0.35);margin-bottom:12px;}
+.log-list{display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto;scrollbar-width:none;}
+.log-list::-webkit-scrollbar{display:none;}
+.log-item{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(240,221,214,0.04);opacity:0;transform:translateY(5px);transition:all 0.35s;}
+.log-item.vis{opacity:1;transform:translateY(0);}
+.log-item:last-child{border-bottom:none;}
+.li-ico{font-size:0.9rem;flex-shrink:0;margin-top:1px;}
+.li-text{font-size:0.72rem;color:rgba(240,221,214,0.65);line-height:1.4;}
+.li-text strong{color:var(--copper);}
+.li-time{font-size:0.56rem;color:rgba(240,221,214,0.25);flex-shrink:0;margin-top:2px;}
+
+@media(max-width:680px){.layout{flex-direction:column;align-items:center;}.right{max-width:100%;width:100%;}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">Glass <span>Skin</span> Beauty</div>
+  <div class="logo-s">by Kazak · Pannello Admin</div>
+  <div class="badge">✦ Gestione Servizi & Prezzi</div>
+</div>
+
+<div class="layout">
+
+  <!-- ══ PHONE ══ -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screen" id="screen">
+
+      <!-- TOAST -->
+      <div class="toast" id="toast"></div>
+
+      <!-- EDIT SHEET -->
+      <div class="sheet-ov" id="editOv" onclick="if(event.target===this)closeSheet()">
+        <div class="sheet">
+          <div class="sheet-handle"></div>
+          <div class="sheet-title" id="sheetTitle">Modifica Servizio</div>
+
+          <div class="emo-row" id="emoRow"></div>
+
+          <label class="flbl">Nome servizio</label>
+          <input class="finput" id="inp-name" placeholder="es. Pulizia Viso Profonda"/>
+
+          <label class="flbl">Descrizione breve</label>
+          <input class="finput" id="inp-desc" placeholder="es. Vapore, comedoni, siero"/>
+
+          <div class="row2">
+            <div style="flex:1">
+              <label class="flbl">Durata (min)</label>
+              <input class="finput" id="inp-dur" type="number" placeholder="60" min="15" step="15"/>
+            </div>
+            <div style="flex:1">
+              <label class="flbl">Prezzo (€)</label>
+              <input class="finput" id="inp-price" type="number" placeholder="65" min="0"/>
+            </div>
+          </div>
+
+          <div class="sheet-btns">
+            <button class="sbtn-cancel" onclick="closeSheet()">Annulla</button>
+            <button class="sbtn-save" onclick="saveService()">✓ Salva modifiche</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- DELETE SHEET -->
+      <div class="sheet-ov" id="delOv" onclick="if(event.target===this)closeDelSheet()">
+        <div class="del-sheet">
+          <div class="sheet-handle"></div>
+          <div class="del-title">Elimina servizio?</div>
+          <div class="del-sub" id="delSubText">Questa azione rimuoverà il servizio dal listino clienti. Gli appuntamenti esistenti non verranno modificati.</div>
+          <div class="sheet-btns">
+            <button class="sbtn-cancel" onclick="closeDelSheet()">Annulla</button>
+            <button class="dbtn-del" onclick="confirmDelete()">🗑 Elimina</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOPBAR -->
+      <div class="atop">
+        <div class="abrand">Glass <span>Skin</span> <span style="font-size:0.68rem;opacity:0.5">· Admin</span></div>
+        <div class="alive"><div class="ldot"></div>Online</div>
+      </div>
+
+      <div class="scr" id="scr">
+
+        <!-- ═══ SERVIZI PAGE ═══ -->
+        <div class="pg on" id="pg-servizi">
+          <div class="ph">Servizi & Prezzi</div>
+          <div class="ps">Gestisci il tuo listino</div>
+
+          <div class="stats-mini">
+            <div class="sm"><div class="sm-n" id="sm-tot">5</div><div class="sm-l">Servizi</div></div>
+            <div class="sm"><div class="sm-n" id="sm-att">5</div><div class="sm-l">Attivi</div></div>
+            <div class="sm"><div class="sm-n" id="sm-avg">€72</div><div class="sm-l">Prezzo medio</div></div>
+          </div>
+
+          <div class="svc-list" id="svcList"></div>
+          <button class="add-svc-btn" onclick="openAddSheet()">+ Aggiungi nuovo servizio</button>
+        </div>
+
+        <!-- ═══ PREVIEW CLIENT PAGE ═══ -->
+        <div class="pg" id="pg-preview">
+          <div class="ph">Anteprima Clienti</div>
+          <div class="ps">Come vedono il listino le tue clienti</div>
+          <div class="preview-card">
+            <div class="pv-label">✦ Trattamenti disponibili</div>
+            <div class="pv-grid" id="pvGrid"></div>
+          </div>
+        </div>
+
+        <!-- ═══ CATEGORIE PAGE ═══ -->
+        <div class="pg" id="pg-cat">
+          <div class="ph">Categorie</div>
+          <div class="ps">Organizza i tuoi servizi</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="background:rgba(255,249,247,0.025);border:1px solid var(--border);border-radius:12px;padding:13px;display:flex;align-items:center;gap:10px;">
+              <span style="font-size:1.3rem">🌸</span><div style="flex:1"><div style="font-family:'Cormorant Garamond',serif;font-size:0.9rem;color:var(--blush)">Trattamenti Viso</div><div style="font-size:0.6rem;color:rgba(240,221,214,0.35);margin-top:2px">5 servizi attivi</div></div><span style="color:var(--copper);font-size:0.7rem">Modifica →</span>
+            </div>
+            <div style="background:rgba(255,249,247,0.025);border:1px dashed rgba(196,132,106,0.2);border-radius:12px;padding:13px;display:flex;align-items:center;gap:10px;opacity:0.5;">
+              <span style="font-size:1.3rem">➕</span><div style="font-size:0.75rem;color:rgba(240,221,214,0.4)">Aggiungi categoria</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ STORICO PAGE ═══ -->
+        <div class="pg" id="pg-storico">
+          <div class="ph">Storico Modifiche</div>
+          <div class="ps">Tutte le variazioni ai servizi</div>
+          <div style="display:flex;flex-direction:column;gap:7px" id="storicoList"></div>
+        </div>
+
+      </div><!-- scr -->
+
+      <!-- BOTTOM NAV -->
+      <nav class="bnav">
+        <button class="ni on" id="ni0" onclick="navTo('servizi',0)"><span class="nicon">✦</span><span class="nlbl">Servizi</span></button>
+        <button class="ni" id="ni1" onclick="navTo('preview',1)"><span class="nicon">👁</span><span class="nlbl">Preview</span></button>
+        <button class="ni" id="ni2" onclick="navTo('cat',2)"><span class="nicon">🗂</span><span class="nlbl">Categorie</span></button>
+        <button class="ni" id="ni3" onclick="navTo('storico',3)"><span class="nicon">📋</span><span class="nlbl">Storico</span></button>
+      </nav>
+
+    </div><!-- screen -->
+  </div><!-- phone -->
+
+  <!-- ══ RIGHT PANEL ══ -->
+  <div class="right">
+
+    <!-- live preview -->
+    <div class="sync-card">
+      <div class="sync-title"><div class="sync-dot"></div>Preview Live — Vista Clienti</div>
+      <div class="preview-grid" id="liveGrid"></div>
+    </div>
+
+    <!-- stats -->
+    <div class="stats-card">
+      <div class="stats-title">📊 Statistiche Listino</div>
+      <div class="stats-rows">
+        <div class="stat-row2"><span class="sr-label">Servizi attivi</span><span class="sr-value" id="rs-att">5</span></div>
+        <div class="stat-row2"><span class="sr-label">Prezzo minimo</span><span class="sr-value" id="rs-min">€55</span></div>
+        <div class="stat-row2"><span class="sr-label">Prezzo massimo</span><span class="sr-value" id="rs-max">€95</span></div>
+        <div class="stat-row2"><span class="sr-label">Prezzo medio</span><span class="sr-value" id="rs-avg">€72</span></div>
+        <div class="stat-row2"><span class="sr-label">Durata media</span><span class="sr-value" id="rs-dur">63 min</span></div>
+      </div>
+    </div>
+
+    <!-- log -->
+    <div class="log-card">
+      <div class="log-title">📝 Log Modifiche Recenti</div>
+      <div class="log-list" id="logList"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+const EMOJIS = ['🌸','💧','✨','🌟','🫧','🌿','💎','🪷','🫶','💆','🌺','🍃'];
+
+let services = [
+  {id:1, emo:'🌸', name:'Pulizia Profonda',    desc:'Vapore, comedoni, siero',        dur:60, price:65,  active:true},
+  {id:2, emo:'💧', name:'Facciale Idratante',  desc:'Acido ialuronico, massaggio',     dur:60, price:70,  active:true},
+  {id:3, emo:'✨', name:'Anti-età Lifting',    desc:'Radiofrequenza, collagene',       dur:75, price:85,  active:true},
+  {id:4, emo:'🌟', name:'Peeling Glow',        desc:'Esfoliazione, vitamina C',        dur:45, price:55,  active:true},
+  {id:5, emo:'🫧', name:'Hydra Intense',       desc:'K-beauty ritual completo',        dur:90, price:95,  active:true},
+];
+
+let editingId = null;
+let deletingId = null;
+let selectedEmo = '🌸';
+let changeLog = [];
+
+// ══════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════
+function renderAll(){
+  renderServiceList();
+  renderLiveGrid();
+  renderPreviewGrid();
+  renderStats();
+}
+
+function renderServiceList(){
+  const c = document.getElementById('svcList');
+  c.innerHTML = services.map(s => `
+    <div class="svc-item${s.active?'':' inactive'}" id="si-${s.id}">
+      <span class="si-emo">${s.emo}</span>
+      <div class="si-body">
+        <div class="si-name">${s.name}</div>
+        <div class="si-meta">${s.dur} min · ${s.desc}</div>
+      </div>
+      <div class="si-price">€${s.price}</div>
+      <div class="si-actions">
+        <button class="act-btn tog-btn${s.active?'':' off'}" onclick="toggleService(${s.id},event)" title="${s.active?'Disattiva':'Attiva'}">${s.active?'👁':'🚫'}</button>
+        <button class="act-btn edit-btn" onclick="openEditSheet(${s.id},event)" title="Modifica">✏️</button>
+        <button class="act-btn del-btn" onclick="openDelSheet(${s.id},event)" title="Elimina">🗑</button>
+      </div>
+    </div>`).join('');
+
+  // update stats mini
+  const active = services.filter(s=>s.active);
+  const avg = active.length ? Math.round(active.reduce((a,s)=>a+s.price,0)/active.length) : 0;
+  document.getElementById('sm-tot').textContent = services.length;
+  document.getElementById('sm-att').textContent = active.length;
+  document.getElementById('sm-avg').textContent = '€'+avg;
+}
+
+function renderLiveGrid(){
+  const c = document.getElementById('liveGrid');
+  const active = services.filter(s=>s.active);
+  c.innerHTML = active.map(s=>`
+    <div class="pg-card" id="pgc-${s.id}">
+      <span class="pg-emo">${s.emo}</span>
+      <div class="pg-name">${s.name}</div>
+      <div class="pg-dur">${s.dur} min</div>
+      <div class="pg-price">€${s.price}</div>
+    </div>`).join('');
+}
+
+function renderPreviewGrid(){
+  const c = document.getElementById('pvGrid');
+  const active = services.filter(s=>s.active);
+  c.innerHTML = active.map(s=>`
+    <div class="pv-card">
+      <span class="pv-emo">${s.emo}</span>
+      <div class="pv-name">${s.name}</div>
+      <div class="pv-dur">${s.dur} min</div>
+      <div class="pv-price">€${s.price}</div>
+    </div>`).join('');
+}
+
+function renderStats(){
+  const active = services.filter(s=>s.active);
+  if(!active.length){
+    document.getElementById('rs-att').textContent='0';
+    document.getElementById('rs-min').textContent='—';
+    document.getElementById('rs-max').textContent='—';
+    document.getElementById('rs-avg').textContent='—';
+    document.getElementById('rs-dur').textContent='—';
+    return;
+  }
+  const prices = active.map(s=>s.price);
+  const durs = active.map(s=>s.dur);
+  document.getElementById('rs-att').textContent = active.length;
+  document.getElementById('rs-min').textContent = '€'+Math.min(...prices);
+  document.getElementById('rs-max').textContent = '€'+Math.max(...prices);
+  document.getElementById('rs-avg').textContent = '€'+Math.round(prices.reduce((a,b)=>a+b,0)/prices.length);
+  document.getElementById('rs-dur').textContent = Math.round(durs.reduce((a,b)=>a+b,0)/durs.length)+' min';
+}
+
+function renderStorico(){
+  const c = document.getElementById('storicoList');
+  if(!changeLog.length){
+    c.innerHTML=`<div style="text-align:center;padding:20px 0;opacity:0.4"><div style="font-size:2rem;margin-bottom:6px">📋</div><div style="font-size:0.75rem;color:rgba(240,221,214,0.5)">Nessuna modifica ancora</div></div>`;
+    return;
+  }
+  c.innerHTML = [...changeLog].reverse().map(l=>`
+    <div style="background:rgba(255,249,247,0.025);border:1px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;align-items:flex-start;gap:9px;">
+      <span style="font-size:1rem;flex-shrink:0">${l.ico}</span>
+      <div style="flex:1"><div style="font-size:0.76rem;color:rgba(240,221,214,0.75);line-height:1.4">${l.text}</div><div style="font-size:0.56rem;color:rgba(240,221,214,0.28);margin-top:3px">${l.time}</div></div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════
+//  EMOJI PICKER
+// ══════════════════════════════════════════
+function renderEmojiPicker(current){
+  selectedEmo = current || '🌸';
+  const row = document.getElementById('emoRow');
+  row.innerHTML = EMOJIS.map(e=>`
+    <div class="emo-opt${e===selectedEmo?' sel':''}" onclick="selectEmo('${e}',this)">${e}</div>`
+  ).join('');
+}
+
+function selectEmo(emo,el){
+  selectedEmo = emo;
+  document.querySelectorAll('.emo-opt').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+// ══════════════════════════════════════════
+//  EDIT SHEET
+// ══════════════════════════════════════════
+function openAddSheet(){
+  editingId = null;
+  document.getElementById('sheetTitle').textContent = '+ Nuovo Servizio';
+  renderEmojiPicker('🌸');
+  document.getElementById('inp-name').value = '';
+  document.getElementById('inp-desc').value = '';
+  document.getElementById('inp-dur').value = '60';
+  document.getElementById('inp-price').value = '';
+  document.getElementById('editOv').classList.add('open');
+}
+
+function openEditSheet(id, e){
+  e && e.stopPropagation();
+  const s = services.find(x=>x.id===id);
+  if(!s) return;
+  editingId = id;
+  document.getElementById('sheetTitle').textContent = 'Modifica Servizio';
+  renderEmojiPicker(s.emo);
+  document.getElementById('inp-name').value = s.name;
+  document.getElementById('inp-desc').value = s.desc;
+  document.getElementById('inp-dur').value = s.dur;
+  document.getElementById('inp-price').value = s.price;
+  document.getElementById('editOv').classList.add('open');
+}
+
+function closeSheet(){
+  document.getElementById('editOv').classList.remove('open');
+}
+
+function saveService(){
+  const name  = document.getElementById('inp-name').value.trim();
+  const desc  = document.getElementById('inp-desc').value.trim();
+  const dur   = parseInt(document.getElementById('inp-dur').value) || 60;
+  const price = parseInt(document.getElementById('inp-price').value) || 0;
+
+  if(!name){ showToast('⚠️ Inserisci il nome del servizio'); return; }
+  if(!price){ showToast('⚠️ Inserisci il prezzo'); return; }
+
+  if(editingId){
+    const s = services.find(x=>x.id===editingId);
+    const oldPrice = s.price;
+    const oldName = s.name;
+    s.emo = selectedEmo; s.name = name; s.desc = desc; s.dur = dur; s.price = price;
+
+    addLog('✏️', `<strong>${name}</strong> modificato${oldPrice!==price?' — prezzo: €'+oldPrice+' → €'+price:''}`, now());
+    showToast('✓ Servizio aggiornato!');
+
+    // Flash live card
+    const lc = document.getElementById('pgc-'+editingId);
+    if(lc){ lc.classList.add('updated'); setTimeout(()=>lc.classList.remove('updated'),700); }
+  } else {
+    const newId = Date.now();
+    services.push({id:newId, emo:selectedEmo, name, desc, dur, price, active:true});
+    addLog('➕', `Nuovo servizio: <strong>${name}</strong> · €${price}`, now());
+    showToast('✓ Servizio aggiunto!');
+  }
+
+  closeSheet();
+  renderAll();
+  renderStorico();
+}
+
+// ══════════════════════════════════════════
+//  DELETE
+// ══════════════════════════════════════════
+function openDelSheet(id, e){
+  e && e.stopPropagation();
+  deletingId = id;
+  const s = services.find(x=>x.id===id);
+  document.getElementById('delSubText').innerHTML =
+    `Stai per eliminare <strong style="color:var(--blush)">${s?s.name:'questo servizio'}</strong>.<br>Questa azione rimuoverà il servizio dal listino clienti.`;
+  document.getElementById('delOv').classList.add('open');
+}
+
+function closeDelSheet(){
+  document.getElementById('delOv').classList.remove('open');
+}
+
+function confirmDelete(){
+  const s = services.find(x=>x.id===deletingId);
+  if(s){
+    addLog('🗑️', `<strong>${s.name}</strong> eliminato dal listino`, now());
+    services = services.filter(x=>x.id!==deletingId);
+    showToast('🗑 Servizio eliminato');
+  }
+  closeDelSheet();
+  renderAll();
+  renderStorico();
+}
+
+// ══════════════════════════════════════════
+//  TOGGLE
+// ══════════════════════════════════════════
+function toggleService(id, e){
+  e && e.stopPropagation();
+  const s = services.find(x=>x.id===id);
+  if(!s) return;
+  s.active = !s.active;
+  addLog(s.active?'👁':'🚫', `<strong>${s.name}</strong> ${s.active?'attivato':'disattivato'}`, now());
+  showToast(s.active ? '👁 Servizio attivato' : '🚫 Servizio disattivato');
+  renderAll();
+  renderStorico();
+}
+
+// ══════════════════════════════════════════
+//  NAV
+// ══════════════════════════════════════════
+function navTo(pg, idx){
+  ['servizi','preview','cat','storico'].forEach(p=>{
+    const el=document.getElementById('pg-'+p); if(el) el.classList.remove('on');
+  });
+  document.getElementById('pg-'+pg).classList.add('on');
+  for(let i=0;i<4;i++){const n=document.getElementById('ni'+i);if(n)n.classList.remove('on');}
+  document.getElementById('ni'+idx).classList.add('on');
+  document.getElementById('scr').scrollTop=0;
+  if(pg==='storico') renderStorico();
+}
+
+// ══════════════════════════════════════════
+//  LOG
+// ══════════════════════════════════════════
+function addLog(ico, text, time){
+  changeLog.push({ico, text, time});
+  // add to log panel live
+  const c = document.getElementById('logList');
+  const el = document.createElement('div');
+  el.className = 'log-item';
+  el.innerHTML = `<span class="li-ico">${ico}</span><div class="li-text">${text}</div><span class="li-time">${time}</span>`;
+  c.prepend(el);
+  setTimeout(()=>el.classList.add('vis'),50);
+  // keep max 8
+  while(c.children.length > 8) c.removeChild(c.lastChild);
+}
+
+function now(){
+  return new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ══════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+renderAll();
+addLog('🌸','App avviata — listino caricato', now());
+</script>
+</body>
+</html>

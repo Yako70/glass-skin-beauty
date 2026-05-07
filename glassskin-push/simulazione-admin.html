@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Glass Skin Beauty — Simulazione Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0e0907;--panel:#1a100d;--card:#221410;--border:rgba(196,132,106,0.14);
+  --copper:#c4846a;--rose:#d4a5a0;--deep:#b07470;
+  --cream:#faf6f4;--ivory:#fff9f7;--blush:#f0ddd6;
+  --dark:#2c1a17;--muted:#8a6660;
+  --green:#4a9a6a;--red:#c06060;
+  --shadow:rgba(180,120,110,0.13);--shadow-md:rgba(180,120,110,0.24);
+}
+body{
+  font-family:'Jost',sans-serif;
+  background:var(--bg);
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;
+  padding:28px 14px 60px;
+  position:relative;overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 40% at 10% 10%, rgba(196,132,106,0.07) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 60% at 90% 90%, rgba(176,116,112,0.05) 0%,transparent 60%);
+}
+
+/* ── HEADER ── */
+.hdr{text-align:center;margin-bottom:26px;position:relative;z-index:5;}
+.logo{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:300;letter-spacing:0.14em;color:var(--blush);}
+.logo span{color:var(--copper);}
+.logo-s{font-size:0.58rem;letter-spacing:0.38em;text-transform:uppercase;color:rgba(240,221,214,0.35);margin-top:4px;}
+.badge{display:inline-block;margin-top:10px;padding:4px 16px;border-radius:20px;border:1px solid rgba(196,132,106,0.25);font-size:0.56rem;letter-spacing:0.22em;text-transform:uppercase;color:rgba(196,132,106,0.7);}
+
+/* ── LAYOUT ── */
+.layout{display:flex;gap:24px;align-items:flex-start;justify-content:center;width:100%;max-width:900px;position:relative;z-index:5;flex-wrap:wrap;}
+
+/* ── PHONE ── */
+.phone{
+  width:274px;flex-shrink:0;
+  background:linear-gradient(160deg,#291510,#160b08);
+  border-radius:42px;padding:11px;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.05),inset 0 0 0 1px rgba(255,255,255,0.025),0 40px 80px rgba(0,0,0,0.7),0 8px 20px rgba(0,0,0,0.45);
+  position:relative;
+}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:96px;height:22px;background:linear-gradient(160deg,#291510,#160b08);border-radius:0 0 14px 14px;z-index:50;}
+.screen{
+  border-radius:32px;overflow:hidden;
+  background:#0e0907;height:570px;
+  position:relative;display:flex;flex-direction:column;
+  font-family:'Jost',sans-serif;
+}
+
+/* ── ADMIN TOPBAR ── */
+.atopbar{
+  background:rgba(14,9,7,0.95);backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(196,132,106,0.12);
+  padding:10px 13px;display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;z-index:10;position:relative;
+}
+.abrand{font-family:'Cormorant Garamond',serif;font-size:0.95rem;font-weight:300;color:var(--blush);letter-spacing:0.07em;}
+.abrand span{color:var(--copper);}
+.astatus{display:flex;align-items:center;gap:5px;font-size:0.58rem;color:rgba(240,221,214,0.4);letter-spacing:0.08em;}
+.sdot-live{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.8s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+/* ── SCROLL ── */
+.scr{flex:1;overflow-y:auto;scrollbar-width:none;}
+.scr::-webkit-scrollbar{display:none;}
+
+/* ── PAGES ── */
+.pg{display:none;padding:13px 12px 80px;animation:fup 0.3s ease;}
+.pg.on{display:block;}
+@keyframes fup{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── DASHBOARD ── */
+.dash-greeting{margin-bottom:14px;}
+.dg-time{font-size:0.56rem;letter-spacing:0.26em;text-transform:uppercase;color:rgba(196,132,106,0.6);}
+.dg-name{font-family:'Cormorant Garamond',serif;font-size:1.55rem;font-weight:300;color:var(--blush);line-height:1.1;margin-top:3px;}
+.dg-name em{color:var(--copper);font-style:italic;}
+
+.stat-row{display:flex;gap:8px;margin-bottom:14px;}
+.stat-box{
+  flex:1;border-radius:12px;padding:11px 9px;text-align:center;
+  border:1px solid var(--border);
+  background:linear-gradient(135deg,rgba(196,132,106,0.06),rgba(196,132,106,0.02));
+}
+.stat-n{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:300;color:var(--copper);transition:all 0.5s;}
+.stat-l{font-size:0.52rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(240,221,214,0.4);margin-top:2px;}
+
+.sec-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px;}
+.sec-t{font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--blush);}
+.sec-d{font-size:0.58rem;color:rgba(196,132,106,0.6);letter-spacing:0.08em;}
+
+/* Agenda slots */
+.agenda{display:flex;flex-direction:column;gap:7px;}
+.slot{
+  display:flex;align-items:center;gap:9px;
+  border-radius:11px;padding:10px 12px;
+  border:1px solid var(--border);
+  background:rgba(255,249,247,0.025);
+  transition:all 0.5s ease;
+  position:relative;overflow:hidden;
+}
+.slot::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:0;transition:background 0.5s;}
+.slot.free::before{background:rgba(196,132,106,0.2);}
+.slot.booked::before{background:linear-gradient(180deg,var(--rose),var(--copper));}
+.slot.booked{background:rgba(212,165,160,0.04);border-color:rgba(212,165,160,0.15);}
+.slot.new-in{animation:slotIn 0.6s cubic-bezier(0.34,1.3,0.64,1);}
+@keyframes slotIn{from{transform:translateX(-10px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+.slot.cancelling{animation:slotOut 0.5s ease forwards;}
+@keyframes slotOut{to{opacity:0.3;background:rgba(192,96,96,0.05);}}
+
+.sl-time{font-family:'Cormorant Garamond',serif;font-size:0.88rem;color:var(--copper);min-width:38px;}
+.sl-info{flex:1;}
+.sl-name{font-size:0.76rem;color:var(--blush);font-weight:400;}
+.sl-svc{font-size:0.6rem;color:rgba(240,221,214,0.45);margin-top:1px;}
+.sl-free{font-size:0.72rem;color:rgba(240,221,214,0.22);font-style:italic;font-weight:300;}
+.sl-badge{font-size:0.5rem;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:20px;}
+.sl-conf{background:rgba(74,154,106,0.12);color:var(--green);}
+.sl-canc{background:rgba(192,96,96,0.12);color:var(--red);}
+.sl-pend{background:rgba(196,132,106,0.12);color:var(--copper);}
+
+/* ── CLIENTI ── */
+.client-list{display:flex;flex-direction:column;gap:8px;}
+.client-card{
+  background:rgba(255,249,247,0.025);border-radius:12px;padding:12px;
+  border:1px solid var(--border);transition:all 0.3s;
+}
+.cc-top{display:flex;align-items:center;gap:9px;margin-bottom:8px;}
+.cc-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--rose),var(--copper));display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;}
+.cc-name{font-family:'Cormorant Garamond',serif;font-size:0.92rem;color:var(--blush);}
+.cc-since{font-size:0.58rem;color:rgba(240,221,214,0.35);margin-top:1px;}
+.cc-stats{display:flex;gap:10px;}
+.cc-stat{flex:1;background:rgba(196,132,106,0.06);border-radius:8px;padding:7px;text-align:center;}
+.cc-sn{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--copper);}
+.cc-sl{font-size:0.52rem;letter-spacing:0.08em;text-transform:uppercase;color:rgba(240,221,214,0.35);margin-top:1px;}
+.cc-last{font-size:0.62rem;color:rgba(240,221,214,0.4);margin-top:7px;padding-top:7px;border-top:1px solid var(--border);}
+
+/* ── PROMO ── */
+.promo-form{background:rgba(255,249,247,0.025);border-radius:12px;padding:14px;border:1px solid var(--border);}
+.pf-label{font-size:0.56rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(240,221,214,0.4);margin-bottom:5px;display:block;}
+.pf-input{width:100%;padding:9px 11px;background:rgba(255,249,247,0.04);border:1.5px solid rgba(196,132,106,0.2);border-radius:8px;font-family:'Jost',sans-serif;font-size:0.78rem;color:var(--blush);outline:none;margin-bottom:10px;transition:border-color 0.2s;}
+.pf-input.typing{border-color:rgba(196,132,106,0.45);}
+.pf-input::placeholder{color:rgba(240,221,214,0.2);}
+.preview-notif{
+  background:rgba(0,0,0,0.4);border-radius:10px;padding:11px;
+  border:1px solid rgba(196,132,106,0.12);margin-bottom:12px;
+  display:flex;align-items:center;gap:9px;
+  opacity:0;transition:opacity 0.4s;
+}
+.preview-notif.show{opacity:1;}
+.pn-ico{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,var(--rose),var(--copper));display:flex;align-items:center;justify-content:center;font-size:0.82rem;flex-shrink:0;}
+.pn-t{font-size:0.72rem;color:white;font-weight:500;margin-bottom:1px;}
+.pn-b{font-size:0.62rem;color:rgba(255,255,255,0.55);}
+.send-btn{width:100%;padding:11px;background:linear-gradient(135deg,var(--deep),var(--copper));color:white;border:none;border-radius:10px;font-family:'Jost',sans-serif;font-size:0.68rem;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 14px var(--shadow-md);transition:all 0.2s;opacity:0.4;}
+.send-btn.ready{opacity:1;}
+.sent-confirm{text-align:center;padding:12px;display:none;}
+.sent-confirm.show{display:block;}
+.sent-circle{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--rose),var(--copper));display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:white;margin:0 auto 8px;box-shadow:0 4px 14px var(--shadow-md);animation:pop 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes pop{from{transform:scale(0);}to{transform:scale(1);}}
+.sent-t{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--blush);}
+.sent-s{font-size:0.65rem;color:rgba(240,221,214,0.45);margin-top:4px;}
+
+/* ── IMPOSTAZIONI ── */
+.settings-list{display:flex;flex-direction:column;gap:7px;}
+.setting-item{display:flex;align-items:center;justify-content:space-between;background:rgba(255,249,247,0.025);border-radius:11px;padding:12px 13px;border:1px solid var(--border);}
+.si-left{display:flex;align-items:center;gap:10px;}
+.si-ico{font-size:1.1rem;}
+.si-lbl{font-size:0.8rem;color:var(--blush);}
+.si-sub{font-size:0.6rem;color:rgba(240,221,214,0.35);margin-top:1px;}
+.toggle{width:38px;height:20px;border-radius:10px;background:var(--deep);position:relative;cursor:pointer;transition:background 0.3s;flex-shrink:0;}
+.toggle.off{background:rgba(255,255,255,0.1);}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:white;transition:left 0.3s;box-shadow:0 1px 3px rgba(0,0,0,0.3);}
+.toggle.off::after{left:3px;}
+.toggle:not(.off)::after{left:21px;}
+
+/* ── CHAT ADMIN ── */
+.chat-wrap{display:flex;flex-direction:column;height:100%;}
+.chat-msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:9px;padding-bottom:10px;scrollbar-width:none;}
+.chat-msgs::-webkit-scrollbar{display:none;}
+.cm{display:flex;gap:7px;align-items:flex-end;}
+.cm.admin{flex-direction:row-reverse;}
+.cm-av{width:25px;height:25px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;flex-shrink:0;}
+.cm-av.client-av{background:linear-gradient(135deg,var(--rose),var(--copper));}
+.cm-av.admin-av{background:linear-gradient(135deg,#2c1a17,#3d2520);}
+.cm-bub{max-width:76%;padding:9px 12px;font-size:0.72rem;line-height:1.45;border-radius:14px 14px 14px 3px;background:rgba(255,255,255,0.06);color:rgba(240,221,214,0.85);}
+.cm.admin .cm-bub{background:linear-gradient(135deg,var(--deep),var(--copper));color:white;border-radius:14px 14px 3px 14px;}
+.cm-t{font-size:0.52rem;color:rgba(240,221,214,0.25);margin-top:2px;}
+.cm.admin .cm-t{text-align:right;}
+.chat-bar{display:flex;gap:7px;align-items:center;padding:10px 0 0;border-top:1px solid rgba(196,132,106,0.1);}
+.chat-in{flex:1;padding:9px 12px;background:rgba(255,255,255,0.04);border:1.5px solid rgba(196,132,106,0.18);border-radius:18px;font-family:'Jost',sans-serif;font-size:0.76rem;color:var(--blush);outline:none;}
+.chat-in.typing{border-color:rgba(196,132,106,0.4);}
+.chat-in::placeholder{color:rgba(240,221,214,0.18);}
+.chat-send{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--deep),var(--copper));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.82rem;color:white;box-shadow:0 2px 8px var(--shadow);flex-shrink:0;}
+
+/* ── BOTTOM NAV (dark) ── */
+.bnav{
+  position:absolute;bottom:0;left:0;right:0;
+  background:rgba(14,9,7,0.97);backdrop-filter:blur(16px);
+  border-top:1px solid rgba(196,132,106,0.1);
+  display:flex;padding:6px 0 8px;z-index:100;
+}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;border:none;background:none;padding:4px 2px;}
+.nicon{font-size:1rem;}
+.nlbl{font-size:0.48rem;letter-spacing:0.08em;text-transform:uppercase;color:rgba(240,221,214,0.28);font-weight:300;}
+.ni.on .nlbl{color:var(--copper);font-weight:500;}
+.ni.on .nicon{transform:scale(1.1);}
+
+/* ── PUSH NOTIF (sistema) ── */
+.push-sys{
+  position:fixed;top:16px;left:50%;
+  transform:translateX(-50%) translateY(-140px);
+  z-index:9999;width:310px;max-width:88vw;
+  background:#1c1c1e;border-radius:16px;padding:12px 14px;
+  box-shadow:0 12px 40px rgba(0,0,0,0.6);
+  display:flex;align-items:center;gap:10px;
+  transition:transform 0.5s cubic-bezier(0.34,1.3,0.64,1),opacity 0.5s;opacity:0;
+}
+.push-sys.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.ps-ico{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--rose),var(--copper));display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.ps-app{font-size:0.55rem;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:2px;}
+.ps-title{font-size:0.8rem;font-weight:500;color:white;margin-bottom:1px;}
+.ps-body{font-size:0.68rem;color:rgba(255,255,255,0.6);line-height:1.3;}
+.ps-time{font-size:0.56rem;color:rgba(255,255,255,0.28);flex-shrink:0;align-self:flex-start;margin-top:2px;}
+
+/* ── FINGER ── */
+.finger{position:fixed;z-index:8000;font-size:1.7rem;pointer-events:none;transform:rotate(-10deg);filter:drop-shadow(0 3px 6px rgba(0,0,0,0.5));opacity:0;transition:top 0.55s cubic-bezier(0.34,1.2,0.64,1),left 0.55s cubic-bezier(0.34,1.2,0.64,1),opacity 0.3s;}
+.finger.tap{animation:ftap 0.32s ease;}
+@keyframes ftap{0%{transform:rotate(-10deg) scale(1);}50%{transform:rotate(-10deg) scale(0.72);}100%{transform:rotate(-10deg) scale(1);}}
+.ripple{position:fixed;z-index:7999;width:32px;height:32px;border-radius:50%;background:rgba(196,132,106,0.3);transform:scale(0);pointer-events:none;animation:rpl 0.45s ease-out forwards;}
+@keyframes rpl{to{transform:scale(2.8);opacity:0;}}
+
+/* ── SIDE ── */
+.side{flex:1;min-width:230px;max-width:310px;display:flex;flex-direction:column;gap:14px;}
+
+.progress-bar{height:3px;background:rgba(240,221,214,0.08);border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--rose),var(--copper));border-radius:2px;width:0%;transition:width 0.6s ease;}
+
+.ctrl{display:flex;gap:7px;align-items:center;margin-bottom:14px;}
+.btn-run{flex:1;padding:12px;background:linear-gradient(135deg,var(--deep),var(--copper));color:white;border:none;border-radius:11px;font-family:'Jost',sans-serif;font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 16px var(--shadow-md);transition:all 0.2s;}
+.btn-run:hover{transform:translateY(-1px);}
+.btn-run:disabled{opacity:0.38;cursor:default;transform:none;}
+.btn-rst{padding:12px 14px;background:rgba(240,221,214,0.05);color:rgba(240,221,214,0.4);border:1px solid rgba(240,221,214,0.1);border-radius:11px;cursor:pointer;font-size:0.95rem;transition:all 0.18s;}
+.btn-rst:hover{background:rgba(240,221,214,0.09);}
+
+.step-log{background:rgba(255,249,247,0.025);border:1px solid rgba(240,221,214,0.08);border-radius:14px;padding:16px;}
+.log-title{font-size:0.58rem;letter-spacing:0.26em;text-transform:uppercase;color:rgba(240,221,214,0.35);margin-bottom:12px;}
+.log-entry{display:flex;align-items:flex-start;gap:9px;padding:8px 0;border-bottom:1px solid rgba(240,221,214,0.05);opacity:0;transform:translateX(-10px);transition:opacity 0.4s,transform 0.4s;}
+.log-entry.vis{opacity:1;transform:translateX(0);}
+.log-entry:last-child{border-bottom:none;}
+.ln{width:20px;height:20px;border-radius:50%;background:rgba(196,132,106,0.12);display:flex;align-items:center;justify-content:center;font-size:0.58rem;color:var(--copper);flex-shrink:0;margin-top:1px;border:1px solid rgba(196,132,106,0.18);}
+.ln.done{background:rgba(74,154,106,0.12);color:var(--green);border-color:rgba(74,154,106,0.2);}
+.ln.active{background:rgba(196,132,106,0.22);animation:pulse 1.2s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(196,132,106,0.4);}50%{box-shadow:0 0 0 5px rgba(196,132,106,0);}}
+.l-step{font-size:0.6rem;color:rgba(240,221,214,0.4);letter-spacing:0.04em;margin-bottom:2px;}
+.l-detail{font-size:0.74rem;color:rgba(240,221,214,0.78);line-height:1.38;}
+.l-detail strong{color:var(--copper);}
+
+.srv-log{background:rgba(0,0,0,0.45);border:1px solid rgba(74,154,106,0.12);border-radius:13px;padding:14px;}
+.srv-title{font-size:0.58rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(74,154,106,0.55);margin-bottom:9px;display:flex;align-items:center;gap:6px;}
+.srv-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:blink 1.8s infinite;}
+.srv-lines{font-size:0.68rem;font-family:'Courier New',monospace;display:flex;flex-direction:column;gap:3px;max-height:120px;overflow-y:auto;scrollbar-width:none;}
+.srv-lines::-webkit-scrollbar{display:none;}
+.srv-line{opacity:0;transform:translateY(3px);transition:opacity 0.28s,transform 0.28s;line-height:1.4;}
+.srv-line.show{opacity:1;transform:translateY(0);}
+.green{color:var(--green);}.copper{color:var(--copper);}.white{color:rgba(255,255,255,0.65);}.dim{color:rgba(255,255,255,0.28);}
+
+@media(max-width:660px){.layout{flex-direction:column;align-items:center;}.side{max-width:100%;width:100%;}}
+</style>
+</head>
+<body>
+
+<!-- PUSH SYSTEM NOTIFICATION -->
+<div class="push-sys" id="pushSys">
+  <div class="ps-ico">🌸</div>
+  <div style="flex:1">
+    <div class="ps-app">Glass Skin Beauty</div>
+    <div class="ps-title" id="psTitle">Nuova prenotazione!</div>
+    <div class="ps-body" id="psBody">Sofia Rossi — Facciale Idratante · 10:00</div>
+  </div>
+  <div class="ps-time">adesso</div>
+</div>
+
+<!-- FINGER -->
+<div class="finger" id="finger">👆</div>
+
+<div class="hdr">
+  <div class="logo">Glass <span>Skin</span> Beauty</div>
+  <div class="logo-s">by Kazak</div>
+  <div class="badge">🗓️ Simulazione Pannello Amministratore</div>
+</div>
+
+<div class="layout">
+
+  <!-- ══ PHONE ══ -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screen">
+
+      <!-- TOPBAR -->
+      <div class="atopbar">
+        <div class="abrand">Glass <span>Skin</span> <span style="font-size:0.7rem;opacity:0.5">· Admin</span></div>
+        <div class="astatus"><div class="sdot-live"></div>Online</div>
+      </div>
+
+      <div class="scr" id="scr">
+
+        <!-- ═══ DASHBOARD ═══ -->
+        <div class="pg on" id="pg-dash">
+          <div class="dash-greeting">
+            <div class="dg-time">🌸 Buongiorno, Kazak</div>
+            <div class="dg-name">La tua agenda<br><em>di oggi</em> ✦</div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-box"><div class="stat-n" id="st-today">2</div><div class="stat-l">Appunt.</div></div>
+            <div class="stat-box"><div class="stat-n" id="st-week">11</div><div class="stat-l">Settimana</div></div>
+            <div class="stat-box"><div class="stat-n" id="st-rev">€135</div><div class="stat-l">Incasso</div></div>
+          </div>
+          <div class="sec-hdr"><div class="sec-t">Agenda — Gio 15 Maggio</div><div class="sec-d">6 slot · 2 prenotati</div></div>
+          <div class="agenda" id="agendaSlots"></div>
+        </div>
+
+        <!-- ═══ CLIENTI ═══ -->
+        <div class="pg" id="pg-clienti">
+          <div class="dash-greeting" style="margin-bottom:12px">
+            <div class="dg-time">👤 Rubrica Clienti</div>
+            <div class="dg-name" style="font-size:1.3rem">Le tue <em>clienti</em></div>
+          </div>
+          <div class="client-list" id="clientList"></div>
+        </div>
+
+        <!-- ═══ PROMOZIONI ═══ -->
+        <div class="pg" id="pg-promo">
+          <div class="dash-greeting" style="margin-bottom:14px">
+            <div class="dg-time">✨ Marketing</div>
+            <div class="dg-name" style="font-size:1.3rem">Invia <em>Promozione</em></div>
+          </div>
+          <div class="promo-form" id="promoForm">
+            <label class="pf-label">Titolo notifica</label>
+            <input class="pf-input" id="promoTitle" placeholder="es. Offerta Maggio 🌸" readonly/>
+            <label class="pf-label">Messaggio</label>
+            <input class="pf-input" id="promoBody" placeholder="es. −20% su tutti i trattamenti..." readonly/>
+            <div class="preview-notif" id="promoPreview">
+              <div class="pn-ico">🌸</div>
+              <div><div class="pn-t" id="pnT">—</div><div class="pn-b" id="pnB">—</div></div>
+            </div>
+            <button class="send-btn" id="sendPromoBtn">📢 Invia a tutte le clienti</button>
+          </div>
+          <div class="sent-confirm" id="sentConfirm">
+            <div class="sent-circle">✓</div>
+            <div class="sent-t">Promozione Inviata!</div>
+            <div class="sent-s">Notifica push inviata a <strong style="color:var(--copper)">3 clienti</strong></div>
+          </div>
+        </div>
+
+        <!-- ═══ CHAT ADMIN ═══ -->
+        <div class="pg" id="pg-chat">
+          <div class="dg-time" style="margin-bottom:10px">💬 Messaggi clienti</div>
+          <div class="chat-wrap" style="height:420px">
+            <div class="chat-msgs" id="chatMsgs"></div>
+            <div class="chat-bar">
+              <input class="chat-in" id="chatIn" placeholder="Rispondi alla cliente..." readonly/>
+              <button class="chat-send">➤</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ IMPOSTAZIONI ═══ -->
+        <div class="pg" id="pg-settings">
+          <div class="dg-time" style="margin-bottom:12px">⚙️ Impostazioni</div>
+          <div class="dash-greeting" style="margin-bottom:14px"><div class="dg-name" style="font-size:1.3rem">Configura <em>l'app</em></div></div>
+          <div class="settings-list">
+            <div class="setting-item"><div class="si-left"><span class="si-ico">🔔</span><div><div class="si-lbl">Notifiche nuove prenotazioni</div><div class="si-sub">Push istantanea al tuo telefono</div></div></div><div class="toggle" id="tog1"></div></div>
+            <div class="setting-item"><div class="si-left"><span class="si-ico">⏰</span><div><div class="si-lbl">Promemoria mattutino</div><div class="si-sub">Riepilogo agenda ogni mattina</div></div></div><div class="toggle" id="tog2"></div></div>
+            <div class="setting-item"><div class="si-left"><span class="si-ico">📅</span><div><div class="si-lbl">Blocco slot automatico</div><div class="si-sub">Chiudi slot passati in automatico</div></div></div><div class="toggle" id="tog3" onclick="this.classList.toggle('off')"></div></div>
+            <div class="setting-item"><div class="si-left"><span class="si-ico">💬</span><div><div class="si-lbl">Risposta automatica chat</div><div class="si-sub">Fuori orario invia messaggio tipo</div></div></div><div class="toggle off" id="tog4" onclick="this.classList.toggle('off')"></div></div>
+            <div class="setting-item" style="margin-top:4px"><div class="si-left"><span class="si-ico">🕘</span><div><div class="si-lbl">Orario apertura</div><div class="si-sub">Lun–Sab · 09:00 — 18:00</div></div></div><span style="font-size:0.62rem;color:var(--copper)">Modifica →</span></div>
+          </div>
+        </div>
+
+      </div><!-- scr -->
+
+      <!-- BOTTOM NAV dark -->
+      <nav class="bnav">
+        <button class="ni on" id="ni0"><span class="nicon">🗓️</span><span class="nlbl">Agenda</span></button>
+        <button class="ni" id="ni1"><span class="nicon">👥</span><span class="nlbl">Clienti</span></button>
+        <button class="ni" id="ni2"><span class="nicon">📢</span><span class="nlbl">Promo</span></button>
+        <button class="ni" id="ni3"><span class="nicon">💬</span><span class="nlbl">Chat</span></button>
+        <button class="ni" id="ni4"><span class="nicon">⚙️</span><span class="nlbl">Config</span></button>
+      </nav>
+
+    </div><!-- screen -->
+  </div><!-- phone -->
+
+  <!-- ══ SIDE ══ -->
+  <div class="side">
+    <div class="ctrl">
+      <button class="btn-run" id="runBtn" onclick="runSim()">▶ Avvia Simulazione Admin</button>
+      <button class="btn-rst" onclick="resetSim()" title="Reset">↺</button>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="pFill"></div></div>
+
+    <div class="step-log">
+      <div class="log-title">📋 Log Azioni Admin</div>
+      <div id="logEntries"></div>
+    </div>
+
+    <div class="srv-log">
+      <div class="srv-title"><div class="srv-dot"></div>Server · API Push</div>
+      <div class="srv-lines" id="srvLines"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── DATA ──
+const INITIAL_SLOTS = [
+  {time:'09:00', free:true},
+  {time:'10:00', client:'Sofia Rossi',    svc:'Facciale Idratante · 60 min · €70', phone:'+39 333 456 7890'},
+  {time:'11:00', free:true},
+  {time:'12:00', free:true},
+  {time:'14:00', client:'Giulia Bianchi', svc:'Pulizia Profonda · 60 min · €65',   phone:'+39 347 123 4567'},
+  {time:'15:00', free:true},
+  {time:'16:00', free:true},
+  {time:'17:00', free:true},
+];
+
+const CLIENTS = [
+  {av:'💆',name:'Sofia Rossi',    since:'Marzo 2025',  appts:7,  spent:'€490', last:'Facciale Idratante · 15 Mag'},
+  {av:'🌸',name:'Giulia Bianchi', since:'Gennaio 2025', appts:12, spent:'€780', last:'Pulizia Profonda · 15 Mag'},
+  {av:'✨',name:'Marina Conti',   since:'Aprile 2025',  appts:4,  spent:'€220', last:'Peeling Glow · 8 Mag'},
+];
+
+const STEPS = [
+  {step:'Passo 1', detail:'Kazak apre il <strong>Pannello Admin</strong> — dashboard con agenda del giorno'},
+  {step:'Passo 2', detail:'Riceve <strong>notifica push</strong>: nuova prenotazione da Sofia Rossi'},
+  {step:'Passo 3', detail:'Verifica l\'<strong>agenda aggiornata</strong> — slot 10:00 occupato con dettagli'},
+  {step:'Passo 4', detail:'Naviga su <strong>👥 Clienti</strong> — vede storico e statistiche di Sofia'},
+  {step:'Passo 5', detail:'Apre la sezione <strong>💬 Chat</strong> — messaggio da Sofia visibile'},
+  {step:'Passo 6', detail:'Kazak <strong>risponde alla cliente</strong> con un messaggio personalizzato'},
+  {step:'Passo 7', detail:'Va su <strong>📢 Promo</strong> — crea notifica per tutte le clienti'},
+  {step:'Passo 8', detail:'Invia <strong>promozione push</strong> a tutte le 3 clienti iscritte 🎯'},
+  {step:'Passo 9', detail:'Configura <strong>⚙️ Impostazioni</strong> — attiva promemoria mattutino'},
+  {step:'Passo 10',detail:'<strong>Sessione completata</strong> — tutto gestito in meno di 2 minuti ✓'},
+];
+
+const SRV = [
+  {t:'> node server.js',               cls:'dim',    d:0},
+  {t:'🌸 Glass Skin Server — ready',   cls:'green',  d:300},
+  {t:'  subscriptions attive: 3',       cls:'dim',    d:600},
+  {t:'',                                cls:'dim',    d:900},
+  {t:'GET  /admin/subscriptions',       cls:'copper', d:1500},
+  {t:'  → 3 clienti iscritte ✓',        cls:'green',  d:1800},
+  {t:'',                                cls:'dim',    d:2100},
+  {t:'POST /notify/booking (inbound)',  cls:'copper', d:2400},
+  {t:'  → Kazak notified ✓',           cls:'green',  d:2700},
+  {t:'',                                cls:'dim',    d:3000},
+  {t:'POST /notify/promo',             cls:'copper', d:38000},
+  {t:'  → Sofia Rossi: 201 ✓',         cls:'green',  d:38400},
+  {t:'  → Giulia Bianchi: 201 ✓',      cls:'green',  d:38700},
+  {t:'  → Marina Conti: 201 ✓',        cls:'green',  d:39000},
+  {t:'  3/3 delivered ✓',              cls:'green',  d:39300},
+];
+
+// ── RENDER INITIAL ──
+function renderAgenda(newAppt=false){
+  const c=document.getElementById('agendaSlots');
+  c.innerHTML=INITIAL_SLOTS.map((s,i)=>{
+    if(s.free) return `<div class="slot free"><div class="sl-time">${s.time}</div><div class="sl-info"><div class="sl-free">Slot libero</div></div></div>`;
+    const isNew = newAppt && s.time==='10:00';
+    return `<div class="slot booked${isNew?' new-in':''}">
+      <div class="sl-time">${s.time}</div>
+      <div class="sl-info"><div class="sl-name">${s.client}</div><div class="sl-svc">${s.svc}</div></div>
+      <span class="sl-badge sl-conf">✓</span>
+    </div>`;
+  }).join('');
+}
+
+function renderClients(){
+  const c=document.getElementById('clientList');
+  c.innerHTML=CLIENTS.map(cl=>`
+    <div class="client-card">
+      <div class="cc-top"><div class="cc-av">${cl.av}</div><div><div class="cc-name">${cl.name}</div><div class="cc-since">Cliente dal ${cl.since}</div></div></div>
+      <div class="cc-stats">
+        <div class="cc-stat"><div class="cc-sn">${cl.appts}</div><div class="cc-sl">Trattamenti</div></div>
+        <div class="cc-stat"><div class="cc-sn">${cl.spent}</div><div class="cc-sl">Speso</div></div>
+      </div>
+      <div class="cc-last">Ultimo: ${cl.last}</div>
+    </div>`).join('');
+}
+
+function renderChat(withReply=false){
+  const c=document.getElementById('chatMsgs');
+  const msgs=[
+    {mine:false,av:'💆',txt:'Ciao Kazak! Ho prenotato il Facciale Idratante per giovedì alle 10. Posso portare la mia amica? 🌸',t:'09:14'},
+    {mine:false,av:'💆',txt:'È la prima volta che viene, le farete un bel trattamento?',t:'09:15'},
+  ];
+  if(withReply){
+    msgs.push({mine:true,av:'🌿',txt:'Ciao Sofia! Certamente 🌸 La tua amica è benvenuta! Le consiglio la Pulizia Profonda come primo trattamento. Vuoi che prenoti anche per lei?',t:'09:32'});
+  }
+  c.innerHTML=msgs.map(m=>`
+    <div class="cm${m.mine?' admin':''}">
+      <div class="cm-av ${m.mine?'admin-av':'client-av'}">${m.av}</div>
+      <div><div class="cm-bub">${m.txt}</div><div class="cm-t">${m.t}</div></div>
+    </div>`).join('');
+  setTimeout(()=>c.scrollTop=c.scrollHeight,50);
+}
+
+renderAgenda();renderClients();renderChat();
+
+// ── NAV ──
+function navTo(pg,idx){
+  ['dash','clienti','promo','chat','settings'].forEach(p=>{
+    const el=document.getElementById('pg-'+p);if(el)el.classList.remove('on');
+  });
+  document.getElementById('pg-'+pg).classList.add('on');
+  for(let i=0;i<5;i++){const n=document.getElementById('ni'+i);if(n)n.classList.remove('on');}
+  if(idx!=null)document.getElementById('ni'+idx).classList.add('on');
+  document.getElementById('scr').scrollTop=0;
+}
+
+// ── FINGER ──
+const finger=document.getElementById('finger');
+function moveFinger(x,y){finger.style.left=x+'px';finger.style.top=y+'px';finger.style.opacity='1';}
+function tapAt(x,y){
+  moveFinger(x,y);finger.classList.remove('tap');void finger.offsetWidth;finger.classList.add('tap');
+  const r=document.createElement('div');r.className='ripple';r.style.left=(x-16)+'px';r.style.top=(y-16)+'px';
+  document.body.appendChild(r);setTimeout(()=>r.remove(),500);
+}
+function hideFinger(){finger.style.opacity='0';}
+
+function sc(relX,relY){
+  const s=document.getElementById('scr');if(!s)return{x:0,y:0};
+  const ph=document.querySelector('.phone').getBoundingClientRect();
+  const topH=44;
+  return{x:ph.left+ph.width*relX*0.82+ph.width*0.09, y:ph.top+topH+(ph.height-topH-60)*relY+30};
+}
+
+// ── LOG ──
+let logCount=0;
+function addLog(idx){
+  const c=document.getElementById('logEntries');
+  const s=STEPS[idx];
+  const el=document.createElement('div');
+  el.className='log-entry';el.id='le-'+idx;
+  el.innerHTML=`<div class="ln active">${idx+1}</div><div><div class="l-step">${s.step}</div><div class="l-detail">${s.detail}</div></div>`;
+  c.appendChild(el);
+  setTimeout(()=>el.classList.add('vis'),50);
+  if(idx>0){const prev=document.getElementById('le-'+(idx-1));if(prev){const n=prev.querySelector('.ln');n.classList.remove('active');n.classList.add('done');n.textContent='✓';}}
+}
+
+function addSrv(idx){
+  const c=document.getElementById('srvLines');
+  const l=SRV[idx];
+  const el=document.createElement('div');el.className='srv-line '+l.cls;el.textContent=l.t;
+  c.appendChild(el);setTimeout(()=>el.classList.add('show'),50);c.scrollTop=c.scrollHeight;
+}
+
+function setP(p){document.getElementById('pFill').style.width=p+'%';}
+
+function showPush(title,body){
+  document.getElementById('psTitle').textContent=title;
+  document.getElementById('psBody').textContent=body;
+  const n=document.getElementById('pushSys');n.classList.add('show');
+  setTimeout(()=>n.classList.remove('show'),4500);
+}
+
+// ── SIMULATION ──
+let running=false;
+const d=ms=>new Promise(r=>setTimeout(r,ms));
+
+async function runSim(){
+  if(running)return;
+  running=true;
+  document.getElementById('runBtn').disabled=true;
+  document.getElementById('logEntries').innerHTML='';
+  document.getElementById('srvLines').innerHTML='';
+  setP(0);
+
+  // Server lines with own delays
+  SRV.forEach((l,i)=>setTimeout(()=>addSrv(i),l.d));
+
+  // ── 0: Dashboard ──
+  addLog(0);setP(5);
+  const p0=sc(0.5,0.3);moveFinger(p0.x,p0.y);
+  await d(1200);
+
+  // ── 1: Riceve push notifica nuova prenotazione ──
+  addLog(1);setP(14);
+  hideFinger();
+  showPush('📅 Nuova Prenotazione!','Sofia Rossi → Facciale Idratante · Gio 15 Mag · 10:00');
+  // stat update
+  await d(1000);
+  renderAgenda(true);
+  document.getElementById('st-today').textContent='3';
+  document.getElementById('st-week').textContent='12';
+  document.getElementById('st-rev').textContent='€205';
+  await d(1400);
+
+  // ── 2: Verifica agenda ──
+  addLog(2);setP(24);
+  const agSlot=document.getElementById('agendaSlots');
+  if(agSlot){
+    const bookedSlots=agSlot.querySelectorAll('.slot.booked');
+    if(bookedSlots[0]){
+      const r=bookedSlots[0].getBoundingClientRect();
+      tapAt(r.left+r.width*0.5, r.top+r.height*0.5);
+    }
+  }
+  await d(1200);
+
+  // ── 3: Naviga su Clienti ──
+  addLog(3);setP(35);
+  const ni1=document.getElementById('ni1').getBoundingClientRect();
+  tapAt(ni1.left+ni1.width*0.5, ni1.top+ni1.height*0.5);
+  await d(500);
+  navTo('clienti',1);
+  await d(1000);
+  // scroll to Sofia card
+  document.getElementById('scr').scrollTop=0;
+  await d(600);
+
+  // ── 4: Chat ──
+  addLog(4);setP(47);
+  const ni3=document.getElementById('ni3').getBoundingClientRect();
+  tapAt(ni3.left+ni3.width*0.5, ni3.top+ni3.height*0.5);
+  await d(500);
+  navTo('chat',3);
+  await d(900);
+
+  // ── 5: Kazak risponde ──
+  addLog(5);setP(58);
+  const cin=document.getElementById('chatIn');
+  cin.classList.add('typing');
+  const reply='Ciao Sofia! Certamente 🌸 La tua amica è benvenuta!';
+  for(let i=0;i<reply.length;i++){cin.value+=reply[i];await d(35);}
+  await d(400);
+  cin.classList.remove('typing');
+  cin.value='';
+  renderChat(true);
+  await d(1000);
+
+  // ── 6: Naviga su Promo ──
+  addLog(6);setP(68);
+  const ni2=document.getElementById('ni2').getBoundingClientRect();
+  tapAt(ni2.left+ni2.width*0.5, ni2.top+ni2.height*0.5);
+  await d(500);
+  navTo('promo',2);
+  await d(700);
+
+  // Compila form promo
+  const pt=document.getElementById('promoTitle');
+  pt.classList.add('typing');
+  const titleText='✨ Offerta Giugno!';
+  for(let i=0;i<titleText.length;i++){pt.value+=titleText[i];await d(55);}
+  pt.classList.remove('typing');
+  await d(300);
+
+  const pb=document.getElementById('promoBody');
+  pb.classList.add('typing');
+  const bodyText='−20% su tutti i trattamenti a giugno 🌸';
+  for(let i=0;i<bodyText.length;i++){pb.value+=bodyText[i];await d(45);}
+  pb.classList.remove('typing');
+
+  // Mostra preview
+  document.getElementById('pnT').textContent=titleText;
+  document.getElementById('pnB').textContent=bodyText;
+  document.getElementById('promoPreview').classList.add('show');
+  document.getElementById('sendPromoBtn').classList.add('ready');
+  await d(800);
+
+  // ── 7: Invia promo ──
+  addLog(7);setP(79);
+  const sb=document.getElementById('sendPromoBtn').getBoundingClientRect();
+  tapAt(sb.left+sb.width*0.5, sb.top+sb.height*0.5);
+  await d(600);
+
+  // Mostra success
+  document.getElementById('promoForm').style.display='none';
+  document.getElementById('sentConfirm').classList.add('show');
+
+  // Push alle clienti
+  await d(500);
+  showPush('📢 Promozione inviata!','3/3 clienti notificate — ✨ Offerta Giugno!');
+  await d(1500);
+
+  // ── 8: Impostazioni ──
+  addLog(8);setP(88);
+  const ni4=document.getElementById('ni4').getBoundingClientRect();
+  tapAt(ni4.left+ni4.width*0.5, ni4.top+ni4.height*0.5);
+  await d(500);
+  navTo('settings',4);
+  await d(700);
+
+  // Attiva toggle promemoria
+  const tog2=document.getElementById('tog2');
+  const tr=tog2.getBoundingClientRect();
+  tapAt(tr.left+tr.width*0.5, tr.top+tr.height*0.5);
+  await d(300);
+  tog2.classList.remove('off'); // turn on
+  await d(800);
+
+  // Attiva risposta automatica chat
+  const tog4=document.getElementById('tog4');
+  const tr4=tog4.getBoundingClientRect();
+  tapAt(tr4.left+tr4.width*0.5, tr4.top+tr4.height*0.5);
+  await d(300);
+  tog4.classList.remove('off');
+  await d(600);
+
+  // ── 9: Fine ──
+  addLog(9);setP(100);
+  hideFinger();
+
+  // Mark last done
+  await d(400);
+  const last=document.getElementById('le-9');
+  if(last){const n=last.querySelector('.ln');n.classList.remove('active');n.classList.add('done');n.textContent='✓';}
+
+  running=false;
+  document.getElementById('runBtn').disabled=false;
+  document.getElementById('runBtn').textContent='▶ Riesegui';
+}
+
+function resetSim(){
+  running=false;
+  document.getElementById('runBtn').disabled=false;
+  document.getElementById('runBtn').textContent='▶ Avvia Simulazione Admin';
+  document.getElementById('logEntries').innerHTML='';
+  document.getElementById('srvLines').innerHTML='';
+  setP(0);
+  hideFinger();
+  document.getElementById('pushSys').classList.remove('show');
+  document.getElementById('promoTitle').value='';
+  document.getElementById('promoBody').value='';
+  document.getElementById('promoPreview').classList.remove('show');
+  document.getElementById('sendPromoBtn').classList.remove('ready');
+  document.getElementById('promoForm').style.display='block';
+  document.getElementById('sentConfirm').classList.remove('show');
+  document.getElementById('chatIn').value='';
+  document.getElementById('tog2').classList.add('off');
+  document.getElementById('tog4').classList.add('off');
+  document.getElementById('st-today').textContent='2';
+  document.getElementById('st-week').textContent='11';
+  document.getElementById('st-rev').textContent='€135';
+  renderAgenda(false);
+  renderClients();
+  renderChat(false);
+  navTo('dash',0);
+}
+
+// init toggles
+document.getElementById('tog1').classList.remove('off');
+document.getElementById('tog2').classList.add('off');
+document.getElementById('tog3').classList.remove('off');
+document.getElementById('tog4').classList.add('off');
+</script>
+</body>
+</html>

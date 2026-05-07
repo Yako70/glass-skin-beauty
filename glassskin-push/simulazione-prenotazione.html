@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Glass Skin Beauty — Simulazione Prenotazione</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+
+:root{
+  --blush:#f0ddd6;--rose:#d4a5a0;--deep-rose:#b07470;
+  --cream:#faf6f4;--ivory:#fff9f7;--copper:#c4846a;
+  --dark:#2c1a17;--muted:#8a6660;
+  --glass:rgba(255,249,247,0.85);
+  --shadow:rgba(180,120,110,0.13);
+  --shadow-md:rgba(180,120,110,0.25);
+}
+
+body{
+  font-family:'Jost',sans-serif;
+  background:linear-gradient(150deg,#1a0f0c 0%,#2c1a17 60%,#1a0f0c 100%);
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;
+  padding:30px 16px 60px;
+  overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 70% 50% at 25% 15%,rgba(196,132,106,0.1) 0%,transparent 60%),
+             radial-gradient(ellipse 50% 70% at 80% 85%,rgba(176,116,112,0.07) 0%,transparent 60%);
+}
+
+/* ── HEADER ── */
+.header{text-align:center;margin-bottom:28px;position:relative;z-index:10;}
+.logo{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;letter-spacing:0.14em;color:#f0ddd6;}
+.logo span{color:#c4846a;}
+.logo-sub{font-size:0.6rem;letter-spacing:0.4em;text-transform:uppercase;color:rgba(240,221,214,0.4);margin-top:4px;}
+.sim-badge{display:inline-block;margin-top:12px;padding:5px 18px;border-radius:20px;border:1px solid rgba(196,132,106,0.3);font-size:0.58rem;letter-spacing:0.22em;text-transform:uppercase;color:rgba(196,132,106,0.75);}
+
+/* ── LAYOUT ── */
+.layout{display:flex;gap:28px;align-items:flex-start;justify-content:center;width:100%;max-width:860px;position:relative;z-index:10;}
+
+/* ── PHONE ── */
+.phone-wrap{flex-shrink:0;position:relative;}
+.phone{
+  width:280px;
+  background:linear-gradient(160deg,#3a2220,#1e1210);
+  border-radius:42px;padding:11px;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.06),inset 0 0 0 1px rgba(255,255,255,0.03),0 40px 80px rgba(0,0,0,0.65),0 8px 20px rgba(0,0,0,0.4);
+  position:relative;
+}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:100px;height:24px;background:linear-gradient(160deg,#3a2220,#1e1210);border-radius:0 0 16px 16px;z-index:50;}
+.screen{
+  border-radius:32px;overflow:hidden;background:var(--cream);
+  height:560px;position:relative;
+  --blush:#f0ddd6;--rose:#d4a5a0;--deep-rose:#b07470;
+  --cream:#faf6f4;--ivory:#fff9f7;--copper:#c4846a;
+  --dark:#2c1a17;--muted:#8a6660;
+  --glass:rgba(255,249,247,0.85);
+  --shadow:rgba(180,120,110,0.13);
+  --shadow-md:rgba(180,120,110,0.22);
+  font-family:'Jost',sans-serif;color:var(--dark);
+  display:flex;flex-direction:column;
+}
+
+/* ── TOPBAR ── */
+.topbar{
+  background:var(--glass);backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(212,165,160,0.18);
+  padding:10px 14px;display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;position:relative;z-index:10;
+}
+.brand{font-family:'Cormorant Garamond',serif;font-size:0.95rem;font-weight:400;letter-spacing:0.08em;}
+.brand span{color:var(--copper);}
+.ibtn{width:30px;height:30px;border-radius:50%;background:rgba(212,165,160,0.14);border:none;display:flex;align-items:center;justify-content:center;font-size:0.85rem;position:relative;}
+.ndot{position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:var(--copper);border:1.5px solid var(--ivory);}
+
+/* ── SCROLL CONTENT ── */
+.scroll-content{flex:1;overflow-y:auto;scrollbar-width:none;position:relative;}
+.scroll-content::-webkit-scrollbar{display:none;}
+
+/* ── PAGES ── */
+.pg{display:none;padding:12px 12px 80px;animation:fadeUp 0.3s ease;}
+.pg.on{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* HOME */
+.g-lbl{font-size:0.56rem;letter-spacing:0.26em;text-transform:uppercase;color:var(--muted);}
+.g-h1{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:300;line-height:1.1;margin-top:3px;}
+.g-h1 em{color:var(--copper);font-style:italic;}
+.next-card{background:linear-gradient(135deg,var(--deep-rose),var(--copper));border-radius:14px;padding:14px;color:white;margin:12px 0 16px;position:relative;overflow:hidden;box-shadow:0 5px 18px var(--shadow-md);}
+.next-card::before{content:'✦';position:absolute;right:12px;top:8px;font-size:2.8rem;opacity:0.1;line-height:1;}
+.nc-lbl{font-size:0.52rem;letter-spacing:0.26em;text-transform:uppercase;opacity:0.8;margin-bottom:6px;}
+.nc-svc{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:400;}
+.nc-row{margin-top:8px;display:flex;gap:12px;}
+.nc-d{font-size:0.65rem;opacity:0.88;display:flex;align-items:center;gap:4px;}
+.sec-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+.sec-t{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:400;}
+.sec-l{font-size:0.56rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--copper);}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+.scard{background:var(--ivory);border:1px solid rgba(212,165,160,0.18);border-radius:12px;padding:11px 9px;box-shadow:0 2px 7px var(--shadow);}
+.se{font-size:1.4rem;margin-bottom:5px;display:block;}
+.sn{font-family:'Cormorant Garamond',serif;font-size:0.82rem;color:var(--dark);}
+.sp{font-size:0.72rem;color:var(--copper);font-weight:500;margin-top:5px;}
+
+/* BOOKING */
+.ptitle{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:300;margin-bottom:3px;}
+.psub{font-size:0.62rem;color:var(--muted);margin-bottom:14px;}
+.steps-bar{display:flex;gap:4px;margin-bottom:16px;}
+.sdot{flex:1;height:3px;border-radius:2px;background:rgba(212,165,160,0.22);transition:background 0.4s;}
+.sdot.done{background:var(--copper);}
+.sdot.active{background:var(--deep-rose);}
+.slbl{font-size:0.56rem;color:var(--muted);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:10px;}
+.slist{display:flex;flex-direction:column;gap:7px;margin-bottom:14px;}
+.si{display:flex;align-items:center;gap:9px;background:var(--ivory);border-radius:12px;padding:11px;border:2px solid transparent;transition:all 0.25s;box-shadow:0 2px 5px var(--shadow);}
+.si.sel{border-color:var(--rose);background:linear-gradient(135deg,rgba(240,221,214,0.3),var(--ivory));}
+.si-ico{font-size:1.25rem;flex-shrink:0;}
+.si-nm{font-family:'Cormorant Garamond',serif;font-size:0.88rem;color:var(--dark);}
+.si-mt{font-size:0.6rem;color:var(--muted);margin-top:1px;}
+.si-pr{font-size:0.76rem;color:var(--copper);font-weight:500;margin-left:auto;flex-shrink:0;}
+.chk{width:17px;height:17px;border-radius:50%;border:2px solid rgba(212,165,160,0.35);display:flex;align-items:center;justify-content:center;font-size:0.58rem;color:transparent;transition:all 0.25s;flex-shrink:0;}
+.si.sel .chk{background:var(--rose);border-color:var(--rose);color:white;}
+
+/* Calendar */
+.cal{background:var(--ivory);border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 2px 7px var(--shadow);}
+.cal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.cal-mo{font-family:'Cormorant Garamond',serif;font-size:0.9rem;color:var(--dark);}
+.cgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;}
+.cdlbl{text-align:center;font-size:0.48rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);padding:2px 0;}
+.cd{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:0.66rem;transition:all 0.18s;color:var(--dark);}
+.cd.today{color:var(--copper);font-weight:500;}
+.cd.sel-d{background:var(--rose);color:white;}
+.cd.dis,.cd.sun{color:rgba(139,102,96,0.22);}
+.tslots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px;}
+.tsl{text-align:center;padding:9px 3px;background:var(--ivory);border-radius:8px;border:2px solid transparent;font-size:0.72rem;color:var(--dark);transition:all 0.2s;box-shadow:0 1px 4px var(--shadow);}
+.tsl.sel-t{background:var(--rose);color:white;border-color:var(--rose);}
+.tsl.unavail{background:rgba(240,221,214,0.2);color:rgba(139,102,96,0.28);}
+
+/* Confirm */
+.conf-card{background:var(--ivory);border-radius:12px;padding:14px;margin-bottom:14px;border:1px solid rgba(212,165,160,0.2);box-shadow:0 2px 8px var(--shadow);}
+.crow{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(212,165,160,0.1);}
+.crow:last-child{border-bottom:none;}
+.ckey{font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);}
+.cval{font-family:'Cormorant Garamond',serif;font-size:0.88rem;color:var(--dark);}
+.finput{width:100%;padding:10px 12px;background:var(--ivory);border:1.5px solid rgba(212,165,160,0.28);border-radius:8px;font-family:'Jost',sans-serif;font-size:0.78rem;color:var(--dark);outline:none;margin-bottom:9px;}
+.finput.filled{border-color:rgba(212,165,160,0.5);background:rgba(240,221,214,0.1);}
+.flbl{display:block;font-size:0.56rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+
+/* Buttons */
+.btn-p{width:100%;padding:12px;background:linear-gradient(135deg,var(--deep-rose),var(--copper));color:white;border:none;border-radius:12px;font-family:'Jost',sans-serif;font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 14px var(--shadow-md);transition:all 0.22s;}
+.btn-p:disabled{opacity:0.35;}
+
+/* SUCCESS */
+.success-ov{position:absolute;inset:0;z-index:200;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:28px;opacity:0;visibility:hidden;transition:all 0.4s;}
+.success-ov.show{opacity:1;visibility:visible;}
+.suc-c{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--rose),var(--copper));display:flex;align-items:center;justify-content:center;font-size:1.9rem;color:white;box-shadow:0 5px 20px var(--shadow-md);}
+.suc-t{font-family:'Cormorant Garamond',serif;font-size:1.45rem;font-weight:300;color:var(--dark);text-align:center;line-height:1.2;}
+.suc-m{font-size:0.7rem;color:var(--muted);text-align:center;line-height:1.6;}
+
+/* APPOINTMENTS */
+.tabs{display:flex;gap:4px;margin-bottom:12px;}
+.tab{flex:1;padding:8px;border:none;font-family:'Jost',sans-serif;font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;border-radius:8px;background:rgba(212,165,160,0.1);color:var(--muted);}
+.tab.on{background:var(--rose);color:white;}
+.acard{background:var(--ivory);border-radius:12px;padding:12px;margin-bottom:9px;border:1px solid rgba(212,165,160,0.18);box-shadow:0 2px 7px var(--shadow);position:relative;overflow:hidden;}
+.acard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--rose),var(--copper));}
+.ah{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.asvc{font-family:'Cormorant Garamond',serif;font-size:0.92rem;color:var(--dark);}
+.abadge{font-size:0.52rem;letter-spacing:0.08em;text-transform:uppercase;padding:3px 7px;border-radius:20px;background:rgba(196,132,106,0.1);color:var(--copper);}
+.adets{display:flex;gap:10px;flex-wrap:wrap;}
+.adet{font-size:0.62rem;color:var(--muted);display:flex;align-items:center;gap:3px;}
+
+/* ADMIN */
+.adm-hdr{background:linear-gradient(135deg,#2c1a17,#3d2520);border-radius:12px;padding:14px;color:white;margin-bottom:14px;box-shadow:0 5px 18px rgba(44,26,23,0.35);}
+.adm-t{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:300;}
+.adm-stats{display:flex;gap:14px;margin-top:10px;}
+.adm-n{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:300;}
+.adm-l{font-size:0.52rem;opacity:0.55;letter-spacing:0.1em;text-transform:uppercase;}
+.aslots{display:flex;flex-direction:column;gap:7px;}
+.aslot{display:flex;align-items:center;gap:9px;background:var(--ivory);border-radius:10px;padding:10px 11px;border:1px solid rgba(212,165,160,0.15);box-shadow:0 1px 5px var(--shadow);transition:all 0.4s;}
+.atime{font-family:'Cormorant Garamond',serif;font-size:0.88rem;color:var(--copper);min-width:38px;}
+.acn{font-size:0.75rem;color:var(--dark);font-weight:500;}
+.asn{font-size:0.6rem;color:var(--muted);margin-top:1px;}
+.ast{font-size:0.52rem;letter-spacing:0.08em;text-transform:uppercase;padding:2px 7px;border-radius:20px;transition:all 0.4s;}
+.conf-st{background:rgba(100,180,120,0.1);color:#4a9a6a;}
+.free-st{background:rgba(212,165,160,0.1);color:var(--muted);}
+
+/* BOTTOM NAV */
+.bnav{position:absolute;bottom:0;left:0;right:0;background:var(--glass);backdrop-filter:blur(16px);border-top:1px solid rgba(212,165,160,0.18);display:flex;padding:6px 0 8px;z-index:100;}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;border:none;background:none;padding:4px 2px;}
+.nicon{font-size:1rem;}
+.nlbl{font-size:0.5rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);font-weight:300;}
+.ni.on .nlbl{color:var(--copper);font-weight:500;}
+.ni.on .nicon{transform:scale(1.1);}
+
+/* PUSH NOTIFICATION */
+.push-notif{
+  position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-120px);
+  z-index:9999;width:320px;max-width:90vw;
+  background:#1c1c1e;border-radius:16px;padding:14px 16px;
+  box-shadow:0 12px 40px rgba(0,0,0,0.5);
+  display:flex;align-items:center;gap:12px;
+  transition:transform 0.45s cubic-bezier(0.34,1.3,0.64,1),opacity 0.45s;
+  opacity:0;
+}
+.push-notif.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.push-ico{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--rose),var(--copper));display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+.push-text{flex:1;}
+.push-app{font-size:0.58rem;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:2px;}
+.push-title{font-size:0.82rem;font-weight:500;color:white;margin-bottom:1px;}
+.push-body{font-size:0.72rem;color:rgba(255,255,255,0.65);line-height:1.35;}
+.push-time{font-size:0.6rem;color:rgba(255,255,255,0.3);flex-shrink:0;align-self:flex-start;margin-top:2px;}
+
+/* FINGER CURSOR */
+.finger{
+  position:fixed;z-index:8000;font-size:1.8rem;pointer-events:none;
+  transition:top 0.6s cubic-bezier(0.34,1.2,0.64,1),left 0.6s cubic-bezier(0.34,1.2,0.64,1),opacity 0.3s;
+  transform:rotate(-10deg);
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+  opacity:0;
+}
+.finger.tap{animation:tap 0.35s ease;}
+@keyframes tap{0%{transform:rotate(-10deg) scale(1);}50%{transform:rotate(-10deg) scale(0.75);}100%{transform:rotate(-10deg) scale(1);}}
+
+/* RIPPLE */
+.ripple{
+  position:fixed;z-index:7999;
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(196,132,106,0.35);
+  transform:scale(0);pointer-events:none;
+  animation:rippleAnim 0.5s ease-out forwards;
+}
+@keyframes rippleAnim{to{transform:scale(2.5);opacity:0;}}
+
+/* ── SIDE PANEL ── */
+.side-panel{flex:1;min-width:240px;max-width:320px;display:flex;flex-direction:column;gap:16px;}
+
+.step-log{background:rgba(255,249,247,0.04);border:1px solid rgba(240,221,214,0.1);border-radius:16px;padding:18px;overflow:hidden;}
+.log-title{font-family:'Cormorant Garamond',serif;font-size:0.65rem;letter-spacing:0.28em;text-transform:uppercase;color:rgba(240,221,214,0.45);margin-bottom:14px;}
+.log-entries{display:flex;flex-direction:column;gap:0;}
+.log-entry{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 0;border-bottom:1px solid rgba(240,221,214,0.06);
+  opacity:0;transform:translateX(-12px);
+  transition:opacity 0.4s ease,transform 0.4s ease;
+}
+.log-entry.visible{opacity:1;transform:translateX(0);}
+.log-entry:last-child{border-bottom:none;}
+.log-num{
+  width:22px;height:22px;border-radius:50%;
+  background:rgba(196,132,106,0.15);
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.6rem;color:var(--copper);flex-shrink:0;margin-top:1px;
+  border:1px solid rgba(196,132,106,0.2);
+}
+.log-num.done{background:rgba(100,180,120,0.15);color:#4a9a6a;border-color:rgba(100,180,120,0.25);}
+.log-num.active{background:rgba(196,132,106,0.25);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(196,132,106,0.4);}50%{box-shadow:0 0 0 6px rgba(196,132,106,0);}}
+.log-content{}
+.log-step{font-size:0.68rem;color:rgba(240,221,214,0.55);letter-spacing:0.05em;margin-bottom:2px;}
+.log-detail{font-size:0.78rem;color:rgba(240,221,214,0.85);line-height:1.4;}
+.log-detail strong{color:#c4846a;}
+
+.server-log{background:rgba(0,0,0,0.35);border:1px solid rgba(100,180,120,0.15);border-radius:14px;padding:16px;}
+.srv-title{font-size:0.6rem;letter-spacing:0.22em;text-transform:uppercase;color:rgba(100,180,120,0.6);margin-bottom:10px;display:flex;align-items:center;gap:7px;}
+.srv-dot{width:6px;height:6px;border-radius:50%;background:#4a9a6a;animation:blink 1.5s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;};}
+.srv-lines{font-size:0.7rem;font-family:'Courier New',monospace;display:flex;flex-direction:column;gap:4px;}
+.srv-line{opacity:0;transform:translateY(4px);transition:opacity 0.3s,transform 0.3s;line-height:1.45;}
+.srv-line.show{opacity:1;transform:translateY(0);}
+.srv-line.green{color:#4a9a6a;}
+.srv-line.copper{color:#c4846a;}
+.srv-line.white{color:rgba(255,255,255,0.7);}
+.srv-line.dim{color:rgba(255,255,255,0.35);}
+
+.ctrl-bar{display:flex;gap:8px;align-items:center;}
+.btn-run{
+  flex:1;padding:13px;
+  background:linear-gradient(135deg,var(--deep-rose),var(--copper));
+  color:white;border:none;border-radius:12px;
+  font-family:'Jost',sans-serif;font-size:0.72rem;
+  letter-spacing:0.18em;text-transform:uppercase;
+  cursor:pointer;box-shadow:0 5px 18px var(--shadow-md);
+  transition:all 0.22s;
+}
+.btn-run:hover{transform:translateY(-1px);}
+.btn-run:disabled{opacity:0.4;cursor:default;transform:none;}
+.btn-reset{
+  padding:13px 16px;background:rgba(240,221,214,0.07);
+  color:rgba(240,221,214,0.5);border:1px solid rgba(240,221,214,0.12);
+  border-radius:12px;cursor:pointer;font-size:1rem;
+  transition:all 0.2s;
+}
+.btn-reset:hover{background:rgba(240,221,214,0.12);}
+
+.progress-bar{height:3px;background:rgba(240,221,214,0.1);border-radius:2px;overflow:hidden;margin-bottom:14px;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--rose),var(--copper));border-radius:2px;width:0%;transition:width 0.6s ease;}
+
+@media(max-width:680px){
+  .layout{flex-direction:column;align-items:center;}
+  .side-panel{max-width:100%;width:100%;}
+}
+</style>
+</head>
+<body>
+
+<!-- PUSH NOTIFICATION (sistema operativo) -->
+<div class="push-notif" id="pushNotif">
+  <div class="push-ico">🌸</div>
+  <div class="push-text">
+    <div class="push-app">Glass Skin Beauty</div>
+    <div class="push-title" id="pnTitle">Prenotazione Confermata!</div>
+    <div class="push-body" id="pnBody">Facciale Idratante — Gio 15 Maggio alle 10:00 🌸</div>
+  </div>
+  <div class="push-time" id="pnTime">adesso</div>
+</div>
+
+<!-- FINGER -->
+<div class="finger" id="finger">👆</div>
+
+<div class="header">
+  <div class="logo">Glass <span>Skin</span> Beauty</div>
+  <div class="logo-sub">by Kazak</div>
+  <div class="sim-badge">▶ Simulazione Prenotazione Reale</div>
+</div>
+
+<div class="layout">
+
+  <!-- ══ PHONE ══ -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="screen" id="screen">
+
+        <!-- SUCCESS OVERLAY -->
+        <div class="success-ov" id="succOv">
+          <div class="suc-c">✓</div>
+          <div class="suc-t">Appuntamento<br>Confermato!</div>
+          <div class="suc-m">Facciale Idratante<br>Giovedì 15 Maggio · 10:00 🌸<br><br>Notifica push inviata!</div>
+        </div>
+
+        <!-- TOPBAR -->
+        <div class="topbar">
+          <div class="brand">Glass <span>Skin</span></div>
+          <div><button class="ibtn" id="notifBtn">🔔<div class="ndot"></div></button></div>
+        </div>
+
+        <div class="scroll-content" id="scrollArea">
+
+          <!-- HOME -->
+          <div class="pg on" id="pg-home">
+            <div class="g-lbl">🌸 Buongiorno</div>
+            <div class="g-h1">Ciao,<br><em>Sofia</em> ✦</div>
+            <div class="next-card">
+              <div class="nc-lbl">Prossimo Appuntamento</div>
+              <div class="nc-svc">Nessun appuntamento</div>
+              <div class="nc-row"><div class="nc-d">📅 Prenota ora</div></div>
+            </div>
+            <div class="sec-h"><div class="sec-t">Trattamenti</div><span class="sec-l">Prenota →</span></div>
+            <div class="sgrid">
+              <div class="scard"><span class="se">🌸</span><div class="sn">Pulizia Profonda</div><div class="sp">€65</div></div>
+              <div class="scard" id="faccialeCard" style="border:2px solid transparent;transition:border 0.3s"><span class="se">💧</span><div class="sn">Facciale Idratante</div><div class="sp">€70</div></div>
+              <div class="scard"><span class="se">✨</span><div class="sn">Anti-età</div><div class="sp">€85</div></div>
+              <div class="scard"><span class="se">🌟</span><div class="sn">Peeling Glow</div><div class="sp">€55</div></div>
+            </div>
+          </div>
+
+          <!-- BOOKING STEP 1 -->
+          <div class="pg" id="pg-b1">
+            <div class="ptitle">Prenota</div>
+            <div class="psub">Scegli il trattamento</div>
+            <div class="steps-bar"><div class="sdot active" id="sd1"></div><div class="sdot" id="sd2"></div><div class="sdot" id="sd3"></div></div>
+            <div class="slbl">Passo 1 — Trattamento</div>
+            <div class="slist">
+              <div class="si" id="si-pulizia"><div class="si-ico">🌸</div><div><div class="si-nm">Pulizia Profonda</div><div class="si-mt">60 min · Vapore, comedoni</div></div><div class="si-pr">€65</div><div class="chk">✓</div></div>
+              <div class="si" id="si-facciale"><div class="si-ico">💧</div><div><div class="si-nm">Facciale Idratante</div><div class="si-mt">60 min · Acido ialuronico</div></div><div class="si-pr">€70</div><div class="chk">✓</div></div>
+              <div class="si" id="si-antieta"><div class="si-ico">✨</div><div><div class="si-nm">Anti-età Lifting</div><div class="si-mt">75 min · Radiofrequenza</div></div><div class="si-pr">€85</div><div class="chk">✓</div></div>
+              <div class="si" id="si-peeling"><div class="si-ico">🌟</div><div><div class="si-nm">Peeling Glow</div><div class="si-mt">45 min · Vitamina C</div></div><div class="si-pr">€55</div><div class="chk">✓</div></div>
+            </div>
+            <button class="btn-p" id="s1btn" disabled>Scegli la Data →</button>
+          </div>
+
+          <!-- BOOKING STEP 2 -->
+          <div class="pg" id="pg-b2">
+            <div class="ptitle">Prenota</div>
+            <div class="psub">Scegli data e orario</div>
+            <div class="steps-bar"><div class="sdot done" id="sd1b"></div><div class="sdot active" id="sd2b"></div><div class="sdot" id="sd3b"></div></div>
+            <div class="slbl">Passo 2 — Data & Orario</div>
+            <div class="cal">
+              <div class="cal-hdr"><span style="color:var(--muted);font-size:0.9rem;padding:2px 8px">‹</span><div class="cal-mo">Maggio 2026</div><span style="color:var(--muted);font-size:0.9rem;padding:2px 8px">›</span></div>
+              <div class="cgrid" id="calGrid"></div>
+            </div>
+            <div class="slbl">Orari disponibili</div>
+            <div class="tslots" id="tslots"></div>
+            <button class="btn-p" id="s2btn" disabled>Conferma Orario →</button>
+          </div>
+
+          <!-- BOOKING STEP 3 -->
+          <div class="pg" id="pg-b3">
+            <div class="ptitle">Conferma</div>
+            <div class="psub">Riepilogo prenotazione</div>
+            <div class="steps-bar"><div class="sdot done"></div><div class="sdot done"></div><div class="sdot active"></div></div>
+            <div class="slbl">Passo 3 — Dati & Conferma</div>
+            <div class="conf-card">
+              <div class="crow"><span class="ckey">Trattamento</span><span class="cval">Facciale Idratante</span></div>
+              <div class="crow"><span class="ckey">Data</span><span class="cval" id="confDate">—</span></div>
+              <div class="crow"><span class="ckey">Orario</span><span class="cval" id="confTime">—</span></div>
+              <div class="crow"><span class="ckey">Durata</span><span class="cval">60 min</span></div>
+              <div class="crow"><span class="ckey">Prezzo</span><span class="cval">€70</span></div>
+            </div>
+            <label class="flbl">Nome</label>
+            <input class="finput" id="fname" placeholder="Sofia Rossi" readonly/>
+            <label class="flbl">Telefono</label>
+            <input class="finput" id="ftel" placeholder="+39 333 456 7890" readonly/>
+            <button class="btn-p" id="s3btn" disabled>✦ Conferma Prenotazione</button>
+          </div>
+
+          <!-- APPOINTMENTS -->
+          <div class="pg" id="pg-appts">
+            <div class="ptitle">I miei Appuntamenti</div>
+            <div class="psub">Gestisci le prenotazioni</div>
+            <div class="tabs"><button class="tab on">Prossimi</button><button class="tab">Passati</button></div>
+            <div id="apptList">
+              <div style="text-align:center;padding:30px 0;opacity:0.5">
+                <div style="font-size:2.5rem;margin-bottom:8px">🗓️</div>
+                <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--dark)">Nessun appuntamento</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ADMIN -->
+          <div class="pg" id="pg-admin">
+            <div class="ptitle">Agenda Staff</div>
+            <div class="psub" style="margin-bottom:12px">Mercoledì, 6 Maggio 2026</div>
+            <div class="adm-hdr">
+              <div class="adm-t">Glass Skin Beauty</div>
+              <div class="adm-stats">
+                <div><div class="adm-n" id="adm-today">0</div><div class="adm-l">Oggi</div></div>
+                <div><div class="adm-n" id="adm-week">11</div><div class="adm-l">Settimana</div></div>
+                <div><div class="adm-n" id="adm-rev">€0</div><div class="adm-l">Incasso</div></div>
+              </div>
+            </div>
+            <div class="aslots" id="adminSlots"></div>
+          </div>
+
+        </div><!-- scroll-content -->
+
+        <!-- BOTTOM NAV -->
+        <nav class="bnav">
+          <button class="ni on" id="ni0"><span class="nicon">🏠</span><span class="nlbl">Home</span></button>
+          <button class="ni" id="ni1"><span class="nicon">✦</span><span class="nlbl">Prenota</span></button>
+          <button class="ni" id="ni2"><span class="nicon">📅</span><span class="nlbl">Agenda</span></button>
+          <button class="ni" id="ni3"><span class="nicon">👤</span><span class="nlbl">Profilo</span></button>
+        </nav>
+
+      </div><!-- screen -->
+    </div><!-- phone -->
+  </div><!-- phone-wrap -->
+
+  <!-- ══ SIDE PANEL ══ -->
+  <div class="side-panel">
+
+    <div class="ctrl-bar">
+      <button class="btn-run" id="runBtn" onclick="runSimulation()">▶ Avvia Simulazione</button>
+      <button class="btn-reset" onclick="resetSim()" title="Reset">↺</button>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progFill"></div></div>
+
+    <div class="step-log">
+      <div class="log-title">📋 Log Passi</div>
+      <div class="log-entries" id="logEntries"></div>
+    </div>
+
+    <div class="server-log">
+      <div class="srv-title"><div class="srv-dot"></div>Server Push — Node.js</div>
+      <div class="srv-lines" id="srvLines"></div>
+    </div>
+
+  </div>
+
+</div><!-- layout -->
+
+<script>
+// ── CALENDAR RENDER ──
+function renderCal(){
+  const g = document.getElementById('calGrid');
+  g.innerHTML = '';
+  ['L','M','M','G','V','S','D'].forEach(d=>{
+    const el=document.createElement('div');el.className='cdlbl';el.textContent=d;g.appendChild(el);
+  });
+  // May 2026: starts Thursday (day 3 if Mon=0)
+  const days=31, firstDay=3;
+  for(let i=0;i<firstDay;i++){const e=document.createElement('div');e.className='cd';g.appendChild(e);}
+  for(let d=1;d<=days;d++){
+    const btn=document.createElement('div');
+    btn.className='cd';btn.textContent=d;btn.id='cd-'+d;
+    if(d<6) btn.style.color='rgba(139,102,96,0.22)';
+    if(d===6) btn.classList.add('today');
+    g.appendChild(btn);
+  }
+}
+
+function renderSlots(){
+  const g=document.getElementById('tslots');g.innerHTML='';
+  ['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00'].forEach(t=>{
+    const el=document.createElement('div');el.className='tsl';el.textContent=t;el.id='sl-'+t;
+    if(t==='10:00'||t==='14:00') el.classList.add('unavail');
+    g.appendChild(el);
+  });
+}
+
+function renderAdminSlots(withNew=false){
+  const slots=[
+    {time:'09:00',free:true},{time:'10:00',free:true},{time:'11:00',free:true},
+    {time:'12:00',free:true},{time:'14:00',client:'Giulia Bianchi',svc:'Pulizia Profonda · €65'},
+    {time:'15:00',free:true},{time:'16:00',free:true},{time:'17:00',free:true}
+  ];
+  if(withNew){
+    slots[1]={time:'10:00',client:'Sofia Rossi',svc:'Facciale Idratante · 60 min · €70',isNew:true};
+  }
+  const c=document.getElementById('adminSlots');
+  c.innerHTML=slots.map(s=>s.free?
+    `<div class="aslot" style="opacity:0.4"><div class="atime">${s.time}</div><div><div class="acn" style="font-style:italic;font-weight:300;color:var(--muted)">Slot libero</div><div class="asn">Disponibile</div></div></div>`:
+    `<div class="aslot${s.isNew?' new-booking':''}"><div class="atime">${s.time}</div><div style="flex:1"><div class="acn">${s.client}</div><div class="asn">${s.svc}</div></div><span class="ast conf-st">✓ Conf.</span></div>`
+  ).join('');
+  document.getElementById('adm-today').textContent=withNew?2:1;
+  document.getElementById('adm-rev').textContent=withNew?'€135':'€65';
+}
+
+renderCal();renderSlots();renderAdminSlots();
+
+// ── NAVIGATION ──
+function navTo(pg,navIdx){
+  ['home','b1','b2','b3','appts','admin'].forEach(p=>{
+    const el=document.getElementById('pg-'+p);
+    if(el) el.classList.remove('on');
+  });
+  document.getElementById('pg-'+pg).classList.add('on');
+  for(let i=0;i<4;i++){
+    const n=document.getElementById('ni'+i);
+    if(n) n.classList.remove('on');
+  }
+  if(navIdx!=null&&navIdx<4) document.getElementById('ni'+navIdx).classList.add('on');
+  document.getElementById('scrollArea').scrollTop=0;
+}
+
+// ── FINGER ──
+const finger=document.getElementById('finger');
+function moveFinger(x,y){
+  finger.style.left=x+'px';finger.style.top=y+'px';finger.style.opacity='1';
+}
+function tapAt(x,y){
+  moveFinger(x,y);
+  finger.classList.remove('tap');
+  void finger.offsetWidth;
+  finger.classList.add('tap');
+  const r=document.createElement('div');r.className='ripple';
+  r.style.left=(x-18)+'px';r.style.top=(y-18)+'px';
+  document.body.appendChild(r);
+  setTimeout(()=>r.remove(),600);
+}
+function hideFinger(){finger.style.opacity='0';}
+
+// ── PHONE COORDS ──
+function phoneCoords(relX,relY){
+  const s=document.getElementById('screen').getBoundingClientRect();
+  return {x:s.left+s.width*relX, y:s.top+s.height*relY};
+}
+
+// ── LOG ──
+const STEPS=[
+  {step:'Passo 1',detail:'Sofia apre l\'app → <strong>Splash screen</strong> Glass Skin Beauty'},
+  {step:'Passo 2',detail:'Naviga su <strong>✦ Prenota</strong> dalla barra inferiore'},
+  {step:'Passo 3',detail:'Seleziona <strong>💧 Facciale Idratante</strong> · 60 min · €70'},
+  {step:'Passo 4',detail:'Tocca <strong>"Scegli la Data →"</strong> — avanza al Step 2'},
+  {step:'Passo 5',detail:'Sceglie <strong>Giovedì 15 Maggio</strong> dal calendario'},
+  {step:'Passo 6',detail:'Seleziona lo slot <strong>10:00</strong> (11:00 e 14:00 occupati)'},
+  {step:'Passo 7',detail:'Tocca <strong>"Conferma Orario →"</strong> — avanza al Step 3'},
+  {step:'Passo 8',detail:'Inserisce nome <strong>Sofia Rossi</strong> e telefono'},
+  {step:'Passo 9',detail:'Tocca <strong>"✦ Conferma Prenotazione"</strong>'},
+  {step:'Passo 10',detail:'<strong>Notifica push</strong> di sistema inviata in tempo reale 🔔'},
+  {step:'Passo 11',detail:'Agenda <strong>Staff aggiornata</strong>: 10:00 → Sofia Rossi ✓'},
+];
+
+const SERVER_LINES=[
+  {text:'> node server.js', cls:'dim', delay:0},
+  {text:'🌸 Glass Skin Server — porta 3000', cls:'green', delay:400},
+  {text:'  VAPID keys configurate ✓', cls:'dim', delay:700},
+  {text:'', cls:'dim', delay:1000},
+  {text:'POST /subscribe', cls:'copper', delay:3200},
+  {text:'  ✅ Sofia Rossi → subscribed', cls:'green', delay:3600},
+  {text:'  clientId: client_1747_x9k2', cls:'dim', delay:3900},
+  {text:'', cls:'dim', delay:4200},
+  {text:'POST /notify/booking', cls:'copper', delay:19000},
+  {text:'  service: Facciale Idratante', cls:'white', delay:19300},
+  {text:'  date: Gio 15 Maggio · 10:00', cls:'white', delay:19500},
+  {text:'  📲 push → Sofia Rossi', cls:'green', delay:19800},
+  {text:'  HTTP 201 — delivered ✓', cls:'green', delay:20100},
+  {text:'', cls:'dim', delay:20400},
+  {text:'⏰ reminder scheduled: -24h', cls:'copper', delay:20700},
+];
+
+function addLog(idx){
+  const container=document.getElementById('logEntries');
+  const s=STEPS[idx];
+  const el=document.createElement('div');
+  el.className='log-entry';
+  el.id='log-'+idx;
+  el.innerHTML=`<div class="log-num active">${idx+1}</div><div class="log-content"><div class="log-step">${s.step}</div><div class="log-detail">${s.detail}</div></div>`;
+  container.appendChild(el);
+  setTimeout(()=>el.classList.add('visible'),50);
+  // Mark previous as done
+  if(idx>0){
+    const prev=document.getElementById('log-'+(idx-1));
+    if(prev){const n=prev.querySelector('.log-num');n.classList.remove('active');n.classList.add('done');n.textContent='✓';}
+  }
+}
+
+function addSrvLine(idx){
+  const container=document.getElementById('srvLines');
+  const l=SERVER_LINES[idx];
+  const el=document.createElement('div');
+  el.className='srv-line '+l.cls;
+  el.textContent=l.text;
+  container.appendChild(el);
+  setTimeout(()=>el.classList.add('show'),50);
+  container.scrollTop=container.scrollHeight;
+}
+
+// ── PROGRESS ──
+function setProgress(pct){
+  document.getElementById('progFill').style.width=pct+'%';
+}
+
+// ── PUSH NOTIFICATION ──
+function showPushNotif(title,body){
+  const n=document.getElementById('pushNotif');
+  document.getElementById('pnTitle').textContent=title;
+  document.getElementById('pnBody').textContent=body;
+  document.getElementById('pnTime').textContent='adesso';
+  n.classList.add('show');
+  setTimeout(()=>n.classList.remove('show'),5000);
+}
+
+// ── SIMULATION ──
+let simRunning=false;
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+
+async function runSimulation(){
+  if(simRunning)return;
+  simRunning=true;
+  document.getElementById('runBtn').disabled=true;
+  document.getElementById('logEntries').innerHTML='';
+  document.getElementById('srvLines').innerHTML='';
+  setProgress(0);
+
+  // Server lines (async, with their own delays from start)
+  SERVER_LINES.forEach((l,i)=>{
+    setTimeout(()=>addSrvLine(i), l.delay);
+  });
+
+  // ── STEP 0: Splash ──
+  addLog(0);setProgress(5);
+  const p0=phoneCoords(0.5,0.5);moveFinger(p0.x-30,p0.y);
+  await delay(1200);
+
+  // ── STEP 1: Navigate to Prenota ──
+  addLog(1);setProgress(14);
+  const p1=phoneCoords(0.3,0.96);
+  tapAt(p1.x,p1.y);
+  await delay(500);
+  navTo('b1',1);
+  await delay(800);
+
+  // ── STEP 2: Select Facciale Idratante ──
+  addLog(2);setProgress(25);
+  const si=document.getElementById('si-facciale').getBoundingClientRect();
+  tapAt(si.left+si.width*0.5, si.top+si.height*0.5);
+  await delay(400);
+  document.getElementById('si-facciale').classList.add('sel');
+  document.getElementById('s1btn').disabled=false;
+  await delay(900);
+
+  // ── STEP 3: Next button ──
+  addLog(3);setProgress(34);
+  const btnR=document.getElementById('s1btn').getBoundingClientRect();
+  tapAt(btnR.left+btnR.width*0.5, btnR.top+btnR.height*0.5);
+  await delay(500);
+  navTo('b2',1);
+  await delay(700);
+
+  // ── STEP 4: Select date ──
+  addLog(4);setProgress(45);
+  await delay(400);
+  const cd15=document.getElementById('cd-15');
+  if(cd15){
+    const r=cd15.getBoundingClientRect();
+    tapAt(r.left+r.width*0.5, r.top+r.height*0.5);
+    await delay(300);
+    cd15.classList.add('sel-d');
+    document.getElementById('confDate').textContent='Gio 15 Maggio';
+  }
+  await delay(800);
+
+  // ── STEP 5: Select slot ──
+  addLog(5);setProgress(55);
+  const sl=document.getElementById('sl-11:00');
+  if(sl){
+    const r=sl.getBoundingClientRect();
+    tapAt(r.left+r.width*0.5, r.top+r.height*0.5);
+    await delay(300);
+    sl.classList.add('sel-t');
+    document.getElementById('confTime').textContent='11:00';
+    document.getElementById('s2btn').disabled=false;
+  }
+  await delay(800);
+
+  // ── STEP 6: Confirm date ──
+  addLog(6);setProgress(63);
+  const btn2=document.getElementById('s2btn').getBoundingClientRect();
+  tapAt(btn2.left+btn2.width*0.5, btn2.top+btn2.height*0.5);
+  await delay(500);
+  navTo('b3',1);
+  await delay(700);
+
+  // ── STEP 7: Fill name ──
+  addLog(7);setProgress(72);
+  const fnameEl=document.getElementById('fname');
+  fnameEl.value='';
+  const chars='Sofia Rossi';
+  for(let i=0;i<chars.length;i++){
+    fnameEl.value+=chars[i];
+    await delay(60);
+  }
+  fnameEl.classList.add('filled');
+  await delay(300);
+  const ftelEl=document.getElementById('ftel');
+  const tel='+39 333 456 7890';
+  for(let i=0;i<tel.length;i++){
+    ftelEl.value+=tel[i];
+    await delay(40);
+  }
+  ftelEl.classList.add('filled');
+  document.getElementById('s3btn').disabled=false;
+  await delay(700);
+
+  // ── STEP 8: Confirm ──
+  addLog(8);setProgress(82);
+  const btn3=document.getElementById('s3btn').getBoundingClientRect();
+  tapAt(btn3.left+btn3.width*0.5, btn3.top+btn3.height*0.5);
+  await delay(600);
+  document.getElementById('succOv').classList.add('show');
+  await delay(1200);
+
+  // ── STEP 9: Push notification ──
+  addLog(9);setProgress(91);
+  hideFinger();
+  showPushNotif('✓ Prenotazione Confermata!','Facciale Idratante — Gio 15 Maggio alle 11:00 🌸');
+  // Flash notification bell
+  const notifBtn=document.getElementById('notifBtn');
+  notifBtn.style.background='rgba(196,132,106,0.4)';
+  setTimeout(()=>notifBtn.style.background='',600);
+  await delay(2000);
+
+  // ── STEP 10: Admin update ──
+  addLog(10);setProgress(100);
+  document.getElementById('succOv').classList.remove('show');
+  navTo('admin',3);
+  await delay(600);
+  renderAdminSlots(true);
+  // Highlight new booking
+  await delay(300);
+  const newBooking=document.querySelector('.new-booking');
+  if(newBooking){
+    newBooking.style.background='rgba(100,180,120,0.08)';
+    newBooking.style.borderColor='rgba(100,180,120,0.2)';
+    setTimeout(()=>{newBooking.style.background='';newBooking.style.borderColor='';},1500);
+  }
+
+  // Mark last log done
+  await delay(400);
+  const lastLog=document.getElementById('log-10');
+  if(lastLog){const n=lastLog.querySelector('.log-num');n.classList.remove('active');n.classList.add('done');n.textContent='✓';}
+
+  // Update home card
+  const nc=document.querySelector('.nc-svc');
+  if(nc){nc.textContent='Facciale Idratante';}
+  const ncRow=document.querySelector('.nc-row');
+  if(ncRow){ncRow.innerHTML='<div class="nc-d">📅 Gio 15 Maggio</div><div class="nc-d">🕐 11:00</div>';}
+
+  simRunning=false;
+  document.getElementById('runBtn').disabled=false;
+  document.getElementById('runBtn').textContent='▶ Riesegui';
+}
+
+function resetSim(){
+  simRunning=false;
+  document.getElementById('runBtn').disabled=false;
+  document.getElementById('runBtn').textContent='▶ Avvia Simulazione';
+  document.getElementById('logEntries').innerHTML='';
+  document.getElementById('srvLines').innerHTML='';
+  setProgress(0);
+  document.getElementById('progFill').style.width='0%';
+  document.getElementById('succOv').classList.remove('show');
+  document.getElementById('si-facciale').classList.remove('sel');
+  document.getElementById('s1btn').disabled=true;
+  document.getElementById('s2btn').disabled=true;
+  document.getElementById('s3btn').disabled=true;
+  document.getElementById('fname').value='';document.getElementById('fname').classList.remove('filled');
+  document.getElementById('ftel').value='';document.getElementById('ftel').classList.remove('filled');
+  const cd15=document.getElementById('cd-15');if(cd15)cd15.classList.remove('sel-d');
+  const sl=document.getElementById('sl-11:00');if(sl)sl.classList.remove('sel-t');
+  document.getElementById('pushNotif').classList.remove('show');
+  hideFinger();
+  renderAdminSlots(false);
+  const nc=document.querySelector('.nc-svc');if(nc)nc.textContent='Nessun appuntamento';
+  const ncRow=document.querySelector('.nc-row');if(ncRow)ncRow.innerHTML='<div class="nc-d">📅 Prenota ora</div>';
+  navTo('home',0);
+}
+</script>
+</body>
+</html>
