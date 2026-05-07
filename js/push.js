@@ -3,7 +3,7 @@
    Gestisce: permessi, iscrizione, invio notifiche
    ══════════════════════════════════════════ */
 
-const SERVER_URL = window.location.origin;  // stesso server che serve la PWA
+const SERVER_URL = 'https://glass-skin-beauty-production.up.railway.app';
 
 // ─── Utilità: converti chiave VAPID da base64 a Uint8Array ───
 function urlBase64ToUint8Array(base64String) {
