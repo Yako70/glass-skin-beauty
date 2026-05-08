@@ -1820,7 +1820,7 @@ document.getElementById('installBtn').addEventListener('click',async()=>{
   if(deferredPrompt){deferredPrompt.prompt();const{outcome}=await deferredPrompt.userChoice;if(outcome==='accepted')document.getElementById('installBanner').classList.add('hidden');deferredPrompt=null;}
   else showInstallGuide();
 });
-);}
+
 
 </script>
 
