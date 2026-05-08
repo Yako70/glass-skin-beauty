@@ -1,13 +1,10 @@
 [build]
   publish = "glassskin-push"
-  base    = "glassskin-push"
 
 [[headers]]
   for = "/*"
   [headers.values]
     Cache-Control = "no-cache"
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
 
 [[headers]]
   for = "/js/*"
