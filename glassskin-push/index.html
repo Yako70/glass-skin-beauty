@@ -1025,16 +1025,43 @@ function showToast(msg, type) {
   setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),400); }, 3200);
 }
 
-// ─── SW message ──────────────────────────
+// ─── SW message handler ──────────────────
 if (navigator.serviceWorker) {
   navigator.serviceWorker.addEventListener('message', e => {
-    if (!e.data || e.data.type !== 'NAVIGATE') return;
-    const hash = (e.data.url||'').split('#')[1];
-    if (!hash) return;
-    const map = { home:0, booking:1, appointments:2, chat:3, profile:4 };
-    if (map[hash] !== undefined) {
-      const btns = document.querySelectorAll('.ni');
-      if (btns[map[hash]]) btns[map[hash]].click();
+    if (!e.data) return;
+
+    // Navigazione normale cliente
+    if (e.data.type === 'NAVIGATE') {
+      const hash = (e.data.url||'').split('#')[1];
+      if (!hash) return;
+      const map = { home:0, booking:1, appointments:2, chat:3, profile:4 };
+      if (map[hash] !== undefined) {
+        const btns = document.querySelectorAll('.ni');
+        if (btns[map[hash]]) btns[map[hash]].click();
+      }
+    }
+
+    // Navigazione admin — apri pannello admin e aggiorna agenda
+    if (e.data.type === 'ADMIN_NAVIGATE') {
+      // Se l'utente admin è loggato
+      const adminApp = document.getElementById('adminApp');
+      const clientApp = document.getElementById('clientApp');
+      if (adminApp && clientApp) {
+        // Mostra pannello admin
+        clientApp.style.display = 'none';
+        adminApp.style.display = 'block';
+        // Naviga sulla sezione agenda
+        if (typeof adminNav === 'function') adminNav('agenda', 0);
+        // Aggiorna l'agenda
+        if (typeof renderAdminAgenda === 'function') renderAdminAgenda();
+      }
+    }
+
+    // Aggiornamento silenzioso — solo ricarica dati
+    if (e.data.type === 'REFRESH_DATA') {
+      if (typeof renderAdminAgenda === 'function') renderAdminAgenda();
+      if (typeof updateHomeNextAppt === 'function') updateHomeNextAppt();
+      if (typeof renderAppointments === 'function') renderAppointments();
     }
   });
 }
@@ -1119,7 +1146,25 @@ window.addEventListener('load', () => {
     document.getElementById('userName').textContent = state.profile.name.split(' ')[0];
     document.getElementById('profName').textContent = state.profile.name;
   }
-  setTimeout(() => { document.getElementById('clientApp').style.display = 'block'; }, 100);
+  setTimeout(() => {
+    document.getElementById('clientApp').style.display = 'block';
+    // Controlla se l'app è stata aperta da notifica admin
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('open') === 'admin' && getAdminCreds()) {
+      openAdminLogin();
+    }
+  }, 100);
+
+  // ── Polling ogni 30 sec per aggiornamenti in tempo reale ──
+  setInterval(() => {
+    const adminVisible = document.getElementById('adminApp') &&
+                         document.getElementById('adminApp').style.display !== 'none';
+    if (adminVisible) {
+      renderAdminAgenda();
+      renderAdminClienti();
+    }
+    updateHomeNextAppt();
+  }, 30000);
 });
 
 // ─── GREETING ────────────────────────────
@@ -1789,6 +1834,19 @@ function renderCal() {
   const firstDay=new Date(year,month,1).getDay();
   const daysInMonth=new Date(year,month+1,0).getDate();
   const today=new Date(); today.setHours(0,0,0,0);
+  const allSlots=['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00'];
+
+  // Pre-calcola slot occupati per ogni giorno del mese
+  const bookedByDay = {};
+  state.appointments.filter(a=>a.status==='upcoming').forEach(a=>{
+    const ad=new Date(a.date);
+    if(ad.getFullYear()===year && ad.getMonth()===month){
+      const key=ad.getDate();
+      if(!bookedByDay[key]) bookedByDay[key]=[];
+      bookedByDay[key].push(a.slot);
+    }
+  });
+
   for(let i=0;i<firstDay;i++){const e=document.createElement('div');e.className='cd emp';grid.appendChild(e);}
   for(let d=1;d<=daysInMonth;d++){
     const dobj=new Date(year,month,d); const dw=dobj.getDay();
@@ -1798,7 +1856,26 @@ function renderCal() {
     else {
       if(dobj.getTime()===today.getTime()) btn.classList.add('today');
       if(state.booking.date&&dobj.toDateString()===new Date(state.booking.date).toDateString()) btn.classList.add('sel-d');
-      btn.onclick=()=>selDate(dobj,btn);
+
+      // Indica disponibilità del giorno
+      const dayBooked = bookedByDay[d] || [];
+      const available = allSlots.filter(t=>!dayBooked.includes(t));
+      if(available.length === 0 && dw !== 0) {
+        // Giorno pieno — non selezionabile
+        btn.classList.add('dis');
+        btn.style.background='rgba(192,96,96,0.1)';
+        btn.style.color='rgba(139,102,96,0.4)';
+        btn.title='Nessun posto disponibile';
+      } else if(dayBooked.length > 0 && available.length <= 2) {
+        // Quasi pieno — evidenzia in arancione
+        btn.style.background='rgba(196,132,106,0.15)';
+        btn.style.color='var(--copper)';
+        btn.style.fontWeight='500';
+        btn.title=`Solo ${available.length} posto/i disponibile/i`;
+        btn.onclick=()=>selDate(dobj,btn);
+      } else {
+        btn.onclick=()=>selDate(dobj,btn);
+      }
     }
     grid.appendChild(btn);
   }
@@ -1819,10 +1896,28 @@ function renderSlots(d){
     const[h,m]=t.split(':').map(Number);
     const el=document.createElement('div'); el.className='tsl'; el.textContent=t;
     const past=isToday&&(h<now.getHours()||(h===now.getHours()&&m<=now.getMinutes()));
-    if(booked.includes(t)||past) el.classList.add('unavail');
-    else el.onclick=()=>{document.querySelectorAll('.tsl').forEach(s=>s.classList.remove('sel-t'));el.classList.add('sel-t');state.booking.slot=t;document.getElementById('s2btn').disabled=false;};
+    if(booked.includes(t)||past){
+      el.classList.add('unavail');
+      if(booked.includes(t)){
+        el.textContent=t+' ✕';
+        el.title='Orario non disponibile';
+        el.style.fontSize='0.68rem';
+      }
+    } else {
+      el.onclick=()=>{
+        document.querySelectorAll('.tsl').forEach(s=>s.classList.remove('sel-t'));
+        el.classList.add('sel-t');
+        state.booking.slot=t;
+        document.getElementById('s2btn').disabled=false;
+      };
+    }
     grid.appendChild(el);
   });
+  // Mostra messaggio se tutti gli slot sono occupati
+  const available = allSlots.filter(t => !booked.includes(t));
+  if(available.length === 0){
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:14px;font-size:0.74rem;color:var(--muted)">Nessun orario disponibile per questo giorno</div>';
+  }
 }
 
 // ─── APPOINTMENTS ─────────────────────────
