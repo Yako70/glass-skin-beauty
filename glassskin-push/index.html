@@ -1743,63 +1743,66 @@ function goBack2() {
   document.getElementById('sd2').classList.remove('done'); document.getElementById('sd2').classList.add('active');
 }
 
-function confirmBooking() {
+async function confirmBooking() {
   const name = document.getElementById('bkName').value.trim();
-  if (!name) { showToast('⚠️ Inserisci il tuo nome'); return; }
-  const appt = {
-    id:Date.now(), service:state.booking.service, dur:state.booking.dur, price:state.booking.price,
-    date:state.booking.date, slot:state.booking.slot, clientName:name,
-    clientPhone:document.getElementById('bkPhone').value, notes:document.getElementById('bkNotes').value,
-    status:'upcoming', createdAt:new Date().toISOString()
+  if (!name) { showToast('\u26a0\ufe0f Inserisci il tuo nome'); return; }
+
+  const dateLabel = fmtDate(state.booking.date);
+  const apptData = {
+    service:     state.booking.service,
+    dur:         state.booking.dur,
+    price:       state.booking.price,
+    date:        state.booking.date ? new Date(state.booking.date).toISOString() : null,
+    dateLabel:   dateLabel,
+    slot:        state.booking.slot,
+    clientName:  name,
+    clientPhone: document.getElementById('bkPhone').value,
+    notes:       document.getElementById('bkNotes').value,
   };
-  state.appointments.unshift(appt); saveAppts();
+
+  // ── Salva sul SERVER (admin vede subito) ──
+  try {
+    const res = await fetch(SERVER_URL + '/appointments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ appointment: apptData, clientId: getClientId() })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const localAppt = { ...data.appointment, date: state.booking.date };
+      state.appointments.unshift(localAppt);
+      saveAppts();
+    } else throw new Error('Server error');
+  } catch(err) {
+    // Fallback locale
+    const localAppt = { ...apptData, id: Date.now(), status:'upcoming',
+      date: state.booking.date, createdAt: new Date().toISOString() };
+    state.appointments.unshift(localAppt);
+    saveAppts();
+    console.warn('[App] Salvato in locale:', err.message);
+  }
+
   if (name) {
-    state.profile.name=name; localStorage.setItem('gsb_profile',JSON.stringify(state.profile));
+    state.profile.name = name;
+    localStorage.setItem('gsb_profile', JSON.stringify(state.profile));
     document.getElementById('userName').textContent = name.split(' ')[0];
     document.getElementById('profName').textContent = name;
   }
+
   updateHomeNextAppt();
-  document.getElementById('sucMsg').textContent = state.booking.service+' — '+fmtDate(state.booking.date)+' alle '+state.booking.slot+'\nRiceverai un promemoria 24h prima. 🌸';
+  document.getElementById('sucMsg').textContent =
+    state.booking.service + ' — ' + dateLabel + ' alle ' + state.booking.slot +
+    '\nRiceverai un promemoria 24h prima. 🌸';
   document.getElementById('sucOv').classList.add('show');
 
-  // ── Notifica push ──
-  const pushEnabled = window.GSBPush && window.GSBPush.isEnabled();
-
-  if (pushEnabled) {
-    // Cliente già iscritto → invia notifica subito
-    window.GSBPush.notifyBooking(
-      state.booking.service, fmtDate(state.booking.date),
-      state.booking.slot, name
-    );
-  } else {
-    // Notifica sempre l'admin anche se cliente non iscritto
-    if (window.GSBPush) {
-      fetch(SERVER_URL + '/notify/booking', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({
-          clientId: 'no-sub', service: state.booking.service,
-          date: fmtDate(state.booking.date), time: state.booking.slot,
-          clientName: name
-        })
-      }).catch(()=>{});
-    }
-
-    // ── Attiva notifiche push automaticamente dopo prima prenotazione ──
-    if (window.GSBPush && 'Notification' in window && Notification.permission === 'default') {
-      setTimeout(() => {
-        if (confirm('🔔 Vuoi ricevere notifiche push per i tuoi appuntamenti?\n\nRiceverai conferme e promemoria direttamente sul telefono!')) {
-          window.GSBPush.subscribe(name).then(sub => {
-            if (sub) {
-              // Invia notifica conferma ora che è iscritto
-              window.GSBPush.notifyBooking(
-                state.booking.service, fmtDate(state.booking.date),
-                state.booking.slot, name
-              );
-            }
-          });
-        }
-      }, 1500);
-    }
+  // Prompt push se non ancora attivate
+  if (window.GSBPush && !window.GSBPush.isEnabled() &&
+      'Notification' in window && Notification.permission === 'default') {
+    setTimeout(() => {
+      if (confirm('🔔 Vuoi ricevere notifiche push per i tuoi appuntamenti?')) {
+        window.GSBPush.subscribe(name);
+      }
+    }, 1500);
   }
 
   resetBooking();
