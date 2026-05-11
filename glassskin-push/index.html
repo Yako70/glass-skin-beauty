@@ -1155,15 +1155,22 @@ window.addEventListener('load', () => {
     }
   }, 100);
 
-  // ── Polling ogni 30 sec per aggiornamenti in tempo reale ──
+  // ── Polling ogni 30 sec — sincronizza dal server ──
   setInterval(() => {
     const adminVisible = document.getElementById('adminApp') &&
                          document.getElementById('adminApp').style.display !== 'none';
     if (adminVisible) {
-      renderAdminAgenda();
-      renderAdminClienti();
+      syncFromServer().then(() => {
+        renderAdminAgenda();
+        renderAdminClienti();
+      });
+    } else {
+      // Aggiorna anche lato cliente
+      syncFromServer().then(() => {
+        updateHomeNextAppt();
+        renderAppointments();
+      });
     }
-    updateHomeNextAppt();
   }, 30000);
 });
 
@@ -1203,7 +1210,10 @@ function doAdminLogin() {
     document.getElementById('adminLogin').classList.remove('show');
     document.getElementById('clientApp').style.display='none';
     document.getElementById('adminApp').style.display='block';
-    renderAdminAgenda(); renderAdminServices(); renderAdminPromos(); renderAdminClienti();
+    // Sincronizza appuntamenti dal server
+    syncFromServer().then(() => {
+      renderAdminAgenda(); renderAdminServices(); renderAdminPromos(); renderAdminClienti();
+    });
     showToast('Benvenuta! 🌸', true);
     // Attiva push admin
     if (window.GSBPush) window.GSBPush.subscribeAdmin().then(sub => {
@@ -1261,12 +1271,59 @@ function changeAdminWeek(direction) {
   renderAdminAgenda();
 }
 
-// ─── ADMIN NAV ───────────────────────────
+// ─── SYNC APPUNTAMENTI DAL SERVER ────────
+async function syncFromServer() {
+  try {
+    const res = await fetch(SERVER_URL + '/appointments');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.appointments && data.appointments.length > 0) {
+      // Merge: server è fonte di verità per gli appuntamenti
+      // Converti date stringa in oggetti Date per compatibilità
+      const serverAppts = data.appointments.map(a => ({
+        ...a,
+        date: a.date ? new Date(a.date) : null
+      }));
+      // Sostituisci con dati server
+      state.appointments = serverAppts;
+      saveAppts();
+      return true;
+    }
+  } catch(err) {
+    console.warn('[Sync] Server non raggiungibile:', err.message);
+  }
+  return false;
+}
+
+// ─── CANCEL APPUNTAMENTO (cliente) ───────
+async function cancelApptClient(id) {
+  if (!confirm('Vuoi annullare questo appuntamento?')) return;
+  const a = state.appointments.find(x => x.id === id);
+  if (!a) return;
+
+  // Aggiorna sul server
+  try {
+    await fetch(SERVER_URL + '/appointments/' + id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'cancelled' })
+    });
+  } catch(err) { console.warn('[Cancel] Server error:', err.message); }
+
+  // Aggiorna in locale
+  a.status = 'cancelled';
+  saveAppts();
+  renderAppointments();
+  updateHomeNextAppt();
+}
 function adminNav(page, idx) {
   document.querySelectorAll('.apg').forEach(p => p.classList.remove('on'));
   document.getElementById('apg-'+page).classList.add('on');
   document.querySelectorAll('.ani').forEach(b => b.classList.remove('on'));
   document.getElementById('ani'+idx).classList.add('on');
+  // Sincronizza dal server ad ogni cambio sezione
+  if (page==='agenda')   syncFromServer().then(()=>{renderAdminAgenda();renderAdminClienti();});
+  if (page==='clienti')  syncFromServer().then(()=>renderAdminClienti());
 }
 
 // ─── ADMIN AGENDA ─────────────────────────
@@ -1939,11 +1996,7 @@ function renderApptList(id,items,isUp){
       `<div class="aacts"><button class="abtn abtn-r" onclick="navTo('booking',1)">Prenota di nuovo</button></div>`}
     </div>`).join('');
 }
-function cancelApptClient(id){
-  if(!confirm('Vuoi annullare questo appuntamento?')) return;
-  const a=state.appointments.find(x=>x.id===id);
-  if(a){a.status='cancelled';saveAppts();renderAppointments();updateHomeNextAppt();renderAdminAgenda();}
-}
+/* cancelApptClient: vedere async version sopra */
 function swTab(tab,btn){
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
   document.getElementById('upList').style.display=tab==='up'?'block':'none';
