@@ -1046,35 +1046,50 @@ if (navigator.serviceWorker) {
       }
     }
 
-    // Navigazione admin — apri pannello admin e aggiorna agenda
+    // Navigazione admin
     if (e.data.type === 'ADMIN_NAVIGATE') {
-      // Se l'utente admin è loggato
       const adminApp = document.getElementById('adminApp');
       const clientApp = document.getElementById('clientApp');
-      if (adminApp && clientApp) {
-        // Mostra pannello admin
-        clientApp.style.display = 'none';
-        adminApp.style.display = 'block';
-        // Naviga sulla sezione agenda
+      if (adminApp && clientApp && adminApp.style.display !== 'none') {
         if (typeof adminNav === 'function') adminNav('agenda', 0);
-        // Aggiorna l'agenda
         if (typeof renderAdminAgenda === 'function') renderAdminAgenda();
       }
     }
 
-    // Aggiornamento silenzioso — solo ricarica dati
+    // Aggiornamento dati in background
     if (e.data.type === 'REFRESH_DATA') {
-      if (typeof renderAdminAgenda === 'function') renderAdminAgenda();
-      if (typeof updateHomeNextAppt === 'function') updateHomeNextAppt();
-      if (typeof renderAppointments === 'function') renderAppointments();
+      if (typeof syncFromServer === 'function') {
+        syncFromServer().then(() => {
+          const adminVisible = document.getElementById('adminApp') &&
+                               document.getElementById('adminApp').style.display !== 'none';
+          if (adminVisible) {
+            if (typeof renderAdminAgenda === 'function') renderAdminAgenda();
+            if (typeof renderAdminClienti === 'function') renderAdminClienti();
+          } else {
+            if (typeof updateHomeNextAppt === 'function') updateHomeNextAppt();
+            if (typeof renderAppointments === 'function') renderAppointments();
+          }
+        });
+      }
     }
   });
 }
 
-// ─── Init — NON bloccante ─────────────────
-// Aspetta che tutto sia caricato prima di controllare lo stato push
+// ─── Init ─────────────────────────────────
 window.addEventListener('load', () => {
-  setTimeout(checkPushStatus, 3000); // ritardo maggiore — evita blocchi
+  setTimeout(checkPushStatus, 3000);
+
+  // Avvia keep-alive nel Service Worker
+  if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({ type: 'KEEP_ALIVE_START' });
+  }
+
+  // Registra background sync se supportato
+  if (navigator.serviceWorker && 'SyncManager' in window) {
+    navigator.serviceWorker.ready.then(reg => {
+      reg.sync.register('sync-appointments').catch(() => {});
+    });
+  }
 });
 
 // ─── API pubblica ─────────────────────────
@@ -2133,7 +2148,8 @@ if('serviceWorker'in navigator){window.addEventListener('load',()=>{});}
 
 </script>
 <script>
-if('serviceWorker'in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js',{scope:'/'}).then(function(){console.log('[SW] OK');}).catch(function(e){console.warn('[SW]',e.message);});});}
+if('serviceWorker'in navigator){window.addEventListener('load',function(){navigator.serviceWorker.ready.then(function(reg){console.log('[SW] OK');// Avvia keep-alive
+if(reg.active)reg.active.postMessage({type:'KEEP_ALIVE_START'});});navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(function(e){console.warn('[SW]',e.message);});});}
 </script>
 </body>
 </html>
