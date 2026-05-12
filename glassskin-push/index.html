@@ -880,7 +880,6 @@ async function subscribeToPush(clientName) {
 // ─── Subscribe Admin ─────────────────────
 async function subscribeAdminPush() {
   if (!isPushOK()) return null;
-  if (localStorage.getItem('gsb_admin_push') === 'true') return true;
   try {
     const perm = await Notification.requestPermission();
     if (perm !== 'granted') return null;
@@ -895,11 +894,16 @@ async function subscribeAdminPush() {
       new Promise((_,r) => setTimeout(() => r(new Error('SW timeout')), 5000))
     ]);
 
-    const existing = await reg.pushManager.getSubscription();
-    if (existing) await existing.unsubscribe();
+    // Prendi subscription esistente o creane una nuova
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: appKey
+      });
+    }
 
-    const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: appKey });
-
+    // Invia SEMPRE al server (anche se già iscritto localmente)
     const res = await fetch(SERVER_URL + '/subscribe/admin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -908,6 +912,7 @@ async function subscribeAdminPush() {
 
     if (res.ok) {
       localStorage.setItem('gsb_admin_push', 'true');
+      console.log('[Push] Admin subscription inviata al server ✓');
       return sub;
     }
   } catch(err) {
@@ -1301,7 +1306,7 @@ async function cancelApptClient(id) {
   const a = state.appointments.find(x => x.id === id);
   if (!a) return;
 
-  // Aggiorna sul server
+  // Aggiorna sul SERVER → notifica push all'admin automatica
   try {
     await fetch(SERVER_URL + '/appointments/' + id, {
       method: 'PUT',
@@ -1313,8 +1318,12 @@ async function cancelApptClient(id) {
   // Aggiorna in locale
   a.status = 'cancelled';
   saveAppts();
+
+  // Ricarica da server
+  await syncFromServer();
   renderAppointments();
   updateHomeNextAppt();
+  showToast('Appuntamento annullato');
 }
 function adminNav(page, idx) {
   document.querySelectorAll('.apg').forEach(p => p.classList.remove('on'));
@@ -1485,20 +1494,37 @@ function selectAdminSlot(el, time) {
   editingApptNewSlot = time;
 }
 
-function saveApptEdit() {
+async function saveApptEdit() {
   const a = state.appointments.find(x => x.id===editingApptId);
   if (!a) return;
   const oldSlot = a.slot;
   const clientName = a.clientName;
-  a.slot  = editingApptNewSlot;
-  a.notes = document.getElementById('editApptNote').value;
+  const newSlot = editingApptNewSlot;
+  const notes = document.getElementById('editApptNote').value;
+
+  // Aggiorna sul SERVER
+  try {
+    await fetch(SERVER_URL + '/appointments/' + a.id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slot: newSlot, notes })
+    });
+  } catch(err) { console.warn('[Edit] Server error:', err.message); }
+
+  // Aggiorna in locale
+  a.slot  = newSlot;
+  a.notes = notes;
   saveAppts();
   closeSheet('editApptOv');
+
+  // Ricarica agenda da server
+  await syncFromServer();
   renderAdminAgenda();
   updateHomeNextAppt();
-  // Notifica push modifica → cliente + admin
-  if (window.GSBPush && oldSlot !== editingApptNewSlot) {
-    window.GSBPush.notifyEdit(a.service, fmtDate(a.date), editingApptNewSlot, oldSlot, clientName);
+
+  // Push notifica modifica
+  if (window.GSBPush && oldSlot !== newSlot) {
+    window.GSBPush.notifyEdit(a.service, fmtDate(a.date), newSlot, oldSlot, clientName);
   }
   showToast('✓ Appuntamento modificato!', true);
 }
@@ -1517,20 +1543,30 @@ function openCancelAppt(id) {
   document.getElementById('cancelApptOv').classList.add('open');
 }
 
-function confirmAdminCancel() {
+async function confirmAdminCancel() {
   const a = state.appointments.find(x => x.id===cancellingApptId);
   if (a) {
     const oldDate = fmtDate(a.date);
     const clientName = a.clientName;
+
+    // Aggiorna sul SERVER → notifica push al cliente automatica
+    try {
+      await fetch(SERVER_URL + '/appointments/' + a.id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'cancelled' })
+      });
+    } catch(err) { console.warn('[AdminCancel] Server error:', err.message); }
+
+    // Aggiorna in locale
     a.status = 'cancelled';
     saveAppts();
+
+    // Ricarica da server e aggiorna UI
+    await syncFromServer();
     renderAdminAgenda();
     updateHomeNextAppt();
     renderAppointments();
-    // Notifica push annullamento → cliente + admin
-    if (window.GSBPush) {
-      window.GSBPush.notifyCancel(a.service, oldDate, clientName);
-    }
   }
   closeSheet('cancelApptOv');
   showToast('Appuntamento annullato', true);
