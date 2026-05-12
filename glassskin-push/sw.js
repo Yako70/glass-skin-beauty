@@ -1,32 +1,48 @@
 /* ══════════════════════════════════════════
-   GLASS SKIN BEAUTY — Service Worker v6
-   Fix: notifica click → apre admin + aggiorna agenda
+   GLASS SKIN BEAUTY — Service Worker v7
+   Fix: Response body already used error
    ══════════════════════════════════════════ */
 
-const CACHE = 'gsb-v6';
+const CACHE = 'gsb-v7';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/index.html','/sw.js']).catch(()=>{})));
+  e.waitUntil(
+    caches.open(CACHE).then(c => c.addAll(['/index.html','/sw.js']).catch(()=>{}))
+  );
 });
 
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    )
+  );
   self.clients.claim();
 });
 
 self.addEventListener('fetch', e => {
-  if (e.request.url.includes('/notify/')||e.request.url.includes('/subscribe')||
-      e.request.url.includes('/vapid')||e.request.url.includes('/health')||
+  // Non intercettare chiamate API
+  if (e.request.url.includes('/notify/') ||
+      e.request.url.includes('/subscribe') ||
+      e.request.url.includes('/appointments') ||
+      e.request.url.includes('/vapid') ||
+      e.request.url.includes('/health') ||
       e.request.url.includes('/unsubscribe')) return;
+
+  // Solo GET
+  if (e.request.method !== 'GET') return;
+
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
       return fetch(e.request).then(res => {
-        if (!res||res.status!==200||res.type!=='basic') return res;
-        caches.open(CACHE).then(c=>c.put(e.request,res.clone()));
+        // Clona PRIMA di usare — fix "body already used"
+        if (!res || res.status !== 200 || res.type !== 'basic') return res;
+        const resClone = res.clone();
+        caches.open(CACHE).then(c => c.put(e.request, resClone));
         return res;
-      }).catch(()=>caches.match('/index.html'));
+      }).catch(() => caches.match('/index.html'));
     })
   );
 });
@@ -57,26 +73,19 @@ self.addEventListener('push', e => {
   }));
 });
 
-// ── CLICK NOTIFICA → apre app e invia messaggio con tipo ──
+// ── CLICK NOTIFICA ──
 self.addEventListener('notificationclick', e => {
   e.notification.close();
   if (e.action === 'close') return;
 
-  const notifData = e.notification.data || {};
   const tag = e.notification.tag || '';
-  const url = notifData.url || '/index.html';
-
-  // Determina il tipo di messaggio da inviare all'app
   let msgType = 'NAVIGATE';
-  let msgData = { url };
+  let msgData = { url: '/index.html' };
 
-  // Notifiche admin → apri pannello admin e aggiorna agenda
   if (tag.startsWith('admin-')) {
     msgType = 'ADMIN_NAVIGATE';
     msgData = { page: 'agenda' };
-  }
-  // Notifiche cliente → vai agli appuntamenti
-  else if (tag === 'booking-confirm' || tag === 'edit' || tag === 'cancellation') {
+  } else if (['booking-confirm','edit','cancellation'].includes(tag)) {
     msgType = 'NAVIGATE';
     msgData = { url: '/index.html#appointments' };
   }
@@ -89,10 +98,7 @@ self.addEventListener('notificationclick', e => {
           return c.focus();
         }
       }
-      // App chiusa → aprila con parametro
-      const openUrl = tag.startsWith('admin-')
-        ? '/index.html?open=admin'
-        : url;
+      const openUrl = tag.startsWith('admin-') ? '/index.html?open=admin' : '/index.html';
       if (clients.openWindow) return clients.openWindow(openUrl);
     })
   );
